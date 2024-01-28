@@ -1,0 +1,60 @@
+name: Bug Report
+description: Report a gdUnit4-action bug
+title: "GD-XXX: Describe the issue briefly"
+labels: ["bug"]
+projects: ["projects/5"]
+assignees:
+  - MikeSchulze
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Thanks for taking the time to fill out this bug report!
+        - Please search [open](https://github.com/MikeSchulze/gdUnit4-action/issues?q=is%3Aissue) for existing issues for potential duplicates before filing yours.
+        - Verify that you are using a [supported Godot version](https://docs.godotengine.org/en/stable/about/release_policy.html). Please always check if your issue is reproducible in the latest version – it may already have been fixed!
+
+
+  - type: dropdown
+    id: gdUnit4-action-version
+    attributes:
+      label: The used gdUnit4-action version
+      description: Which gdUnit4-action version are you using?
+      options:
+        - gdUnit4-action@master (Pre Release/Master branch)
+        - gdUnit4-action@v1 (Latest Release)
+      default: 1
+    validations:
+      required: true
+
+  - type: input
+    id: godot-version
+    attributes:
+      label: The used Godot version
+      description: Which Godot version are you using?
+      placeholder: v4.2.1.stable.official [b09f793f5]
+    validations:
+      required: true
+
+  - type: textarea
+    id: system
+    attributes:
+      label: Operating System
+      description: |
+        What operating system are you using?
+        - Specify the OS version, and when relevant hardware information.
+      placeholder: "Example: macOS Big Sur"
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+      placeholder: |
+        Describe what you expected to happen and what actually happened.
+        Include any specific details, configuration, or environment necessary to reproduce the problem.
+        You can include images or videos with drag and drop, and format code blocks or logs with <code>```</code> tags.
+    validations:
+      required: true
