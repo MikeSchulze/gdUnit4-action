@@ -23,12 +23,9 @@ jobs:
       fail-fast: false
       max-parallel: 10
       matrix:
-        godot-version: ['4.2.1'] #['4.1', '4.1.1', '4.1.2', '4.1.3', '4.2', '4.2.1']
+        godot-version: ['4.1', '4.1.1', '4.1.2', '4.1.3', '4.2', '4.2.1']
         godot-status: ['stable']
-        godot-net: [''] #'.Net',
-       # include:
-       #   - godot-version: '4.3'
-       #     godot-status: 'dev2'
+        godot-net: ['', '.Net']
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -36,16 +33,21 @@ jobs:
         with:
           lfs: true
 
+      - name: 'Install test project'
+        shell: bash
+        run: |
+          cp -fR .github/workflows/resources/* .
+
       - name: 'CI on 🐧 Godot_v${{ matrix.godot-version }}-${{ matrix.godot-status }}'
         if: ${{ matrix.godot-net == '' }}
-        timeout-minutes: 10
+        timeout-minutes: 5
         uses: ./
         with:
           godot-version: ${{ matrix.godot-version }}
           godot-status: ${{ matrix.godot-status }}
           godot-net: false
           gdunit-version: master
-          gdunit-tests: 'res://addons/gdUnit4/test/'
+          gdunit-tests: 'res://tests/'
           report-name: test-report_${{ matrix.godot-version }}-${{ matrix.godot-status }}
 
       - name: 'CI on 🐧 Godot_v${{ matrix.godot-version }}-${{ matrix.godot-status }}-net'
@@ -57,7 +59,7 @@ jobs:
           godot-status: ${{ matrix.godot-status }}
           godot-net: true
           gdunit-version: master
-          gdunit-tests: 'res://addons/gdUnit4/test/mono'
+          gdunit-tests: 'res://tests/mono'
           report-name: test-report_${{ matrix.godot-version }}-${{ matrix.godot-status }}-net
 
 

@@ -60,7 +60,7 @@ runs:
         godot-cache-path: '~/godot-linux'
 
     - name: 'Setup .NET'
-      if:  ${{ inputs.godot-net }}
+      if:  ${{ inputs.godot-net == 'true' }}
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 7.0.x
@@ -69,9 +69,8 @@ runs:
       shell: bash
       run: |
           git clone --branch ${{ inputs.gdunit-version }} --single-branch https://github.com/MikeSchulze/gdUnit4 install-gdunit4
-          rsync -av install-gdunit4/addons/ ./addons/
-          rm -rf ./install-gdunit4
-          ls -lsA .
+          mv ./install-gdunit4/addons/ ./addons/
+          rm -rf ./addons/gdUnit4/test
 
     - name: 'Update Project'
       if: ${{ !cancelled() }}
@@ -88,11 +87,10 @@ runs:
       uses: ./.github/actions/unit-test
       with:
         godot-bin: '~/godot-linux/godot'
-        version: ${{ inputs.gdunit-version }}
         test-includes: ${{ inputs.gdunit-tests }}
 
     - name: 'Coredump Check'
-      if: ${{ !cancelled() && inputs.godot-net }}
+      if: ${{ !cancelled() && inputs.godot-net == 'true' }}
       uses: ./.github/actions/check-coredump
       with:
         artifact-name: 'TestRunner-${{ inputs.os }}-${{ inputs.godot-version }}-mono'
