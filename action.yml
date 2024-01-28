@@ -1,0 +1,141 @@
+name: 'GdUnit4 - Test Runner Action'
+description: 'This GitHub Action automates the execution of GdUnit4 unit tests within the Godot Engine 4.x environment.'
+author: Mike Schulze <mikeschulze.lpz@kabelmail.de>
+
+inputs:
+  godot-version:
+    description: 'The version of Godot in which the tests should be run.'
+    required: true
+  godot-status:
+    description: 'The Godot status (e.g., "standard", "rc1", "dev1")'
+    required: false
+    default: 'standard'
+  godot-net:
+    description: 'Set to true for Godot .Net (C#).'
+    required: false
+    default: 'false'
+  version:
+    description: 'The version of GdUnit4 to use. (e.g. "v4.2.0", "latest", "master").'
+    required: false
+    default: latest
+  paths:
+    description: 'Comma-separated or newline-separated list of directorys containing test to execute.'
+    required: true
+  arguments:
+    description: 'Additional arguments to run GdUnit4. (e.g. "--verbose")'
+    required: false
+  timeout:
+    description: 'The test execution timeout in minutes.'
+    required: false
+    default: '10'
+  retries:
+    description: 'The number of retries if the tests fail.'
+    required: false
+    default: '0'
+  report-name:
+    description: 'The name of the test report file.'
+    required: false
+    default: 'test-report.xml'
+
+branding:
+  icon: 'refresh-cw'
+  color: 'purple'
+
+runs:
+  using: 'composite'
+  steps:
+
+    # FIXME: workaround until will be merged: https://github.com/actions/runner/pull/1684
+    - shell: bash
+      run: |
+        echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
+        [ -d ./.gdunit4_action ] || (mkdir -p ./.gdunit4_action/ && cp -r $GITHUB_ACTION_PATH/.gdunit4_action/* ./.gdunit4_action/)
+
+    - name: "Set Cache Name"
+      shell: bash
+      run: |
+        if ${{inputs.godot-net == 'true'}}; then
+            echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status }}_NET" >> "$GITHUB_ENV"
+        else
+            echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status }}" >> "$GITHUB_ENV"
+        fi
+
+    - name: "Build Cache"
+      uses: actions/cache@v4
+      id: godot-cache-binary
+      with:
+        path: '/home/runner/godot-linux'
+        key: ${{ env.CACHE_NAME }}
+        restore-keys: ${{ env.CACHE_NAME }}
+        enableCrossOsArchive: true
+
+    - name: 'Install Godot ${{ inputs.godot-version }}'
+      if: steps.godot-cache-binary.outputs.cache-hit != 'true'
+      uses: ./.gdunit4_action/godot-install
+      with:
+        godot-version: ${{ inputs.godot-version }}
+        godot-net: ${{ inputs.godot-net }}
+        godot-status-version: ${{ inputs.godot-status }}
+        install-path: '/home/runner/godot-linux'
+
+    - name: 'Install gdUnit4 plugin - ${{ inputs.version }}'
+      shell: bash
+      run: |
+          if [[ -d ./addons/gdUnit4 ]]; then
+            echo -e "\e[33m Info: Found a previous installation of GdUnit4, deleting it now. \e[0m"
+            rm -rf ./addons/gdUnit4
+          fi
+
+          # Download requested gdUnit4 version
+          gdunit_version="${{ inputs.version }}"
+          if ${{ inputs.version == 'latest' }}; then
+            gdunit_version=$(git ls-remote --refs --tags https://github.com/MikeSchulze/gdUnit4 v* | sort -t '/' -k 3 -V | tail -n 1 | cut -d '/' -f 3)
+          fi
+          echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
+          git clone --quiet --depth 1 --branch "${gdunit_version}" --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
+
+          # Remove test if no self test requested
+          if [[ -d ./.install-gdunit4/addons/gdUnit4/test && ! "${{ env.GDUNIT_SELFTEST }}" ]]; then
+            rm -rf ./.install-gdunit4/addons/gdUnit4/test
+          fi
+
+          # Install requested gdUnit4 version
+          echo -e "\e[34m Install GdUnit4 \e[92m${gdunit_version} \e[34mplugin in the project \e[0m"
+          mv ./.install-gdunit4/addons .
+          chmod +x ./addons/gdUnit4/runtest.sh
+
+    - name: 'Restore .Net Project'
+      if: ${{ !cancelled() }}
+      shell: bash
+      run: |
+        if ${{ inputs.godot-net == 'true' }}; then
+          dotnet restore
+          dotnet build
+        fi
+
+    - name: 'Run Tests'
+      env:
+        GODOT_BIN: '/home/runner/godot-linux/godot'
+      uses: actions/github-script@v7
+      with:
+        retries: ${{ inputs.retries }}
+        script: |
+          const { runTests } = require('./.gdunit4_action/unit-test/index.js')
+          const args = {
+            timeout: '${{ inputs.timeout }}',
+            paths: `${{ inputs.paths }}`,
+            arguments: `${{ inputs.arguments }}`
+          };
+          await runTests(args);
+
+    - name: 'Publish Unit Test Reports'
+      if: ${{ !cancelled() }}
+      uses: ./.gdunit4_action/publish-test-report
+      with:
+        report-name: ${{ inputs.report-name }}
+
+    - name: 'Upload Unit Test Reports'
+      if: ${{ !cancelled() }}
+      uses: ./.gdunit4_action/upload-test-report
+      with:
+        report-name: ${{ inputs.report-name }}

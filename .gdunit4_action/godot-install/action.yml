@@ -1,0 +1,67 @@
+name: install-godot-binary
+description: "Installs the Godot Runtime"
+
+inputs:
+  godot-version:
+    description: "The Godot engine version"
+    type: string
+    required: true
+  godot-status-version:
+    description: "The Godot engine status version"
+    type: string
+    required: true
+  godot-net:
+    required: false
+    type: boolean
+    default: false
+  install-path:
+    type: string
+    required: true
+
+runs:
+  using: composite
+  steps:
+
+    - name: "Download and Install Godot ${{ inputs.godot-version }}-${{ inputs.godot-status-version }}"
+      if: steps.godot-cache-binary.outputs.cache-hit != 'true'
+      continue-on-error: false
+      shell: bash
+      run: |
+        mkdir -p ${{ inputs.install-path }}
+        chmod 770 ${{ inputs.install-path }}
+        DIR="$HOME/.config/godot"
+        if [ ! -d "$DIR" ]; then
+          mkdir -p "$DIR"
+          chmod 770 "$DIR"
+        fi
+
+        DOWNLOAD_URL=https://github.com/godotengine/godot-builds/releases/download/${{ inputs.godot-version }}-${{ inputs.godot-status-version }}
+        GODOT_BIN=Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status-version }}_linux.x86_64
+        if ${{inputs.godot-net == 'true'}}; then
+          GODOT_BIN=Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status-version }}_mono_linux_x86_64
+        fi
+
+        GODOT_PACKAGE=$GODOT_BIN.zip
+        wget --progress=bar:force:noscroll $DOWNLOAD_URL/$GODOT_PACKAGE -P ${{ inputs.install-path }}
+        unzip ${{ inputs.install-path }}/$GODOT_PACKAGE -d ${{ inputs.install-path }}
+        rm -rf ${{ inputs.install-path }}/$GODOT_PACKAGE
+
+        if ${{runner.OS == 'Linux'}}; then
+          echo "Run linux part"
+
+          if ${{inputs.godot-net == 'true'}}; then
+            mv ${{ inputs.install-path }}/$GODOT_BIN/* ${{ inputs.install-path }}
+            rmdir ${{ inputs.install-path }}/$GODOT_BIN/
+          fi
+
+          mv ${{ inputs.install-path }}/Godot_v* ${{ inputs.install-path }}/godot
+          chmod u+x ${{ inputs.install-path }}/godot
+          echo "${{ inputs.install-path }}/godot"
+        else
+          echo "Run windows part"
+          pwd
+          mv ${{ inputs.install-path }}/$GODOT_BIN ${{ inputs.install-path }}/godot.exe
+          chmod u+x ${{ inputs.install-path }}/godot.exe
+          ${{ inputs.install-path }}/godot.exe --version
+          echo "${{ inputs.install-path }}/godot.exe"
+        fi
