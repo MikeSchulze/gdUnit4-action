@@ -1,0 +1,9 @@
+# Project-specific ignores
+.history
+
+
+# System/tool-specific ignores
+.directory
+*~
+.DS_Store
+.vscode/
