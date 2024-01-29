@@ -42,14 +42,6 @@ branding:
 runs:
   using: 'composite'
   steps:
-    - name: 'Update Ubuntu'
-      if: ${{ !cancelled() }}
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get -y install systemd-coredump
-        sudo apt update
-        sudo apt -y install systemd-coredump
 
     - name: 'Install Godot ${{ inputs.godot-version }}'
       uses: ./.github/actions/godot-install
@@ -57,13 +49,7 @@ runs:
         godot-version: ${{ inputs.godot-version }}
         godot-net: ${{ inputs.godot-net }}
         godot-status-version: ${{ inputs.godot-status }}
-        godot-cache-path: '~/godot-linux'
-
-    - name: 'Setup .NET'
-      if:  ${{ inputs.godot-net == 'true' }}
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 7.0.x
+        godot-cache-path: '/home/runner/godot-linux'
 
     - name: 'Install gdUnit4 plugin'
       shell: bash
@@ -71,6 +57,7 @@ runs:
           git clone --branch ${{ inputs.gdunit-version }} --single-branch https://github.com/MikeSchulze/gdUnit4 install-gdunit4
           mv ./install-gdunit4/addons/ ./addons/
           rm -rf ./addons/gdUnit4/test
+          chmod +x ./addons/gdUnit4/runtest.sh
 
     - name: 'Update Project'
       if: ${{ !cancelled() }}
@@ -80,29 +67,15 @@ runs:
           dotnet restore
           dotnet build
         fi
-        xvfb-run --auto-servernum ~/godot-linux/godot -e --path . -s res://addons/gdUnit4/bin/ProjectScanner.gd --headless --audio-driver Dummy 2> /dev/null
+        xvfb-run --auto-servernum /home/runner/godot-linux/godot -e --path . -s res://addons/gdUnit4/bin/ProjectScanner.gd --headless --audio-driver Dummy 2> /dev/null
 
-    - name: 'Run Unit Tests'
-      if: ${{ !cancelled() }}
-      uses: ./.github/actions/unit-test
+    - name: 'test node.js stuff'
+      env:
+        GODOT_BIN: '/home/runner/godot-linux/godot'
+      uses: actions/github-script@v7
       with:
-        godot-bin: '~/godot-linux/godot'
-        test-includes: ${{ inputs.gdunit-tests }}
+        script: |
+          const script = require('./.github/actions/unit-test/index.js')
+          const args = { timeout: 1, tests: '${{ inputs.gdunit-tests }}' };
 
-    - name: 'Coredump Check'
-      if: ${{ !cancelled() && inputs.godot-net == 'true' }}
-      uses: ./.github/actions/check-coredump
-      with:
-        artifact-name: 'TestRunner-${{ inputs.os }}-${{ inputs.godot-version }}-mono'
-
-    - name: 'Publish Unit Test Reports'
-      if: ${{ !cancelled() }}
-      uses: ./.github/actions/publish-test-report
-      with:
-        report-name: ${{ inputs.report-name }}
-
-    - name: 'Upload Unit Test Reports'
-      if: ${{ !cancelled() }}
-      uses: ./.github/actions/upload-test-report
-      with:
-        report-name: ${{ inputs.report-name }}
+          await script(args);

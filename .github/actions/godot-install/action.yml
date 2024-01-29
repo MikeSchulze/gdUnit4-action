@@ -38,7 +38,7 @@ runs:
         path: ${{ inputs.godot-cache-path }}
         key: ${{ env.CACHE_NAME }}
         restore-keys: ${{ env.CACHE_NAME }}
-        save-always: true
+        enableCrossOsArchive: true
 
     - name: "Download and Install Godot ${{ inputs.godot-version }}"
       if: steps.godot-cache-binary.outputs.cache-hit != 'true'
