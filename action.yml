@@ -43,13 +43,32 @@ runs:
   using: 'composite'
   steps:
 
+    - name: "Set Cache Name"
+      shell: bash
+      run: |
+        if ${{inputs.godot-net == 'true'}}; then
+            echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status-version }}_mono" >> "$GITHUB_ENV"
+        else
+            echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status-version }}" >> "$GITHUB_ENV"
+        fi
+
+    - name: "Build Cache"
+      uses: actions/cache@v4
+      id: godot-cache-binary
+      with:
+        path: '/home/runner/godot-linux'
+        key: ${{ env.CACHE_NAME }}
+        restore-keys: ${{ env.CACHE_NAME }}
+        enableCrossOsArchive: true
+
     - name: 'Install Godot ${{ inputs.godot-version }}'
+      if: steps.godot-cache-binary.outputs.cache-hit != 'true'
       uses: ./.github/actions/godot-install
       with:
         godot-version: ${{ inputs.godot-version }}
         godot-net: ${{ inputs.godot-net }}
         godot-status-version: ${{ inputs.godot-status }}
-        godot-cache-path: '/home/runner/godot-linux'
+        install-path: '/home/runner/godot-linux'
 
     - name: 'Install gdUnit4 plugin'
       shell: bash
