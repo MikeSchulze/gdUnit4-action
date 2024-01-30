@@ -22,7 +22,7 @@ runs:
   using: composite
   steps:
 
-    - name: "Download and Install Godot ${{ inputs.godot-version }}"
+    - name: "Download and Install Godot ${{ inputs.godot-version }}-${{ inputs.godot-status-version }}"
       if: steps.godot-cache-binary.outputs.cache-hit != 'true'
       continue-on-error: false
       shell: bash

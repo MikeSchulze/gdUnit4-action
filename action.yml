@@ -9,22 +9,28 @@ inputs:
     type: string
   godot-status:
     description: 'The Godot status (e.g., "standard", "rc1", "dev1")'
-    required: true
+    required: false
     type: string
+    default: 'standard'
   godot-net:
     description: 'Set to true for Godot .Net (C#).'
     required: false
     type: bool
     default: false
-  gdunit-version:
+  version:
     description: 'The version of GdUnit4 to use. (e.g. "v4.2.0", "latest", "master").'
     required: false
     type: string
     default: master
-  gdunit-tests:
+  tests:
     description: 'The path to the directory containing test to execute.'
     required: true
     type: string
+  timeout:
+    description: 'The test execution timeout in minutes.'
+    required: false
+    type: int
+    default: 10
   report-name:
     description: 'The name of the test report file.'
     required: false
@@ -70,10 +76,17 @@ runs:
         godot-status-version: ${{ inputs.godot-status }}
         install-path: '/home/runner/godot-linux'
 
-    - name: 'Install gdUnit4 plugin'
+    - name: 'Install gdUnit4 plugin - ${{ inputs.version }}'
       shell: bash
       run: |
-          git clone --branch ${{ inputs.gdunit-version }} --single-branch https://github.com/MikeSchulze/gdUnit4 install-gdunit4
+          if ${{ inputs.version == 'latest' }}; then
+            latest_version=$(git ls-remote --refs --tags https://github.com/MikeSchulze/gdUnit4 v* | sort -t '/' -k 3 -V | tail -n 1 | cut -d '/' -f 3)
+            git clone --quiet --depth 1 --branch "${latest_version}" --single-branch https://github.com/MikeSchulze/gdUnit4 install-gdunit4
+            echo -e "* GdUnit4 \e[34m${latest_version}\e[0m installed."
+          else
+            git clone --quiet --depth 1 --branch "${{ inputs.version }}" --single-branch https://github.com/MikeSchulze/gdUnit4 install-gdunit4
+            echo -e "* GdUnit4 \e[34m${{ inputs.version }}\e[0m installed."
+          fi
           mv ./install-gdunit4/addons/ ./addons/
           rm -rf ./addons/gdUnit4/test
           chmod +x ./addons/gdUnit4/runtest.sh
@@ -95,6 +108,21 @@ runs:
       with:
         script: |
           const script = require('./.github/actions/unit-test/index.js')
-          const args = { timeout: 1, tests: '${{ inputs.gdunit-tests }}' };
+          const args = {
+            timeout: '${{ inputs.timeout }}',
+            tests: '${{ inputs.tests }}'
+          };
 
           await script(args);
+
+    - name: 'Publish Unit Test Reports'
+      if: ${{ !cancelled() }}
+      uses: ./.github/actions/publish-test-report
+      with:
+        report-name: ${{ inputs.report-name }}
+
+    - name: 'Upload Unit Test Reports'
+      if: ${{ !cancelled() }}
+      uses: ./.github/actions/upload-test-report
+      with:
+        report-name: ${{ inputs.report-name }}

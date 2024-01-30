@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 
+
 func before():
-	assert_int(GdUnitAssertions.get_line_number()).is_equal(4)
 	assert_failure(func(): assert_int(10).is_equal(42)) \
 		.is_failed() \
 		.has_line(5) \

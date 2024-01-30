@@ -23,16 +23,15 @@ async function runTests(exeArgs) {
     '--verbose'
   ];
 
-  console.log("Running GdUnit4 tests...", tests, args);
+  console.log("Running GdUnit4 tests...", tests);
   const prg = spawn('xvfb-run', args, {
     cwd: getProjectPath(),
     // timeout in minutes to ms
     timeout: timeout * 1000 * 60,
   });
 
-
   prg.stdout.on('data', (data) => {
-    console.log(`${data}`);
+    console.log(new Buffer(data,'utf-8').toString());
   });
   
   prg.on('close', (code) => {

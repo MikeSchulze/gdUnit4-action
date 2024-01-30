@@ -14,12 +14,11 @@ This GitHub Action workflow runs GdUnit4 unit tests in Godot 4.x based on the sp
 
 - uses: MikeSchulze/gdUnit4-action@v1
   with:
-    # The version of Godot in which the tests should be run.
-    # default: 'latest'
+    # The version of Godot in which the tests should be run. (e.g., "4.2.1")
     godot-version: ''
     
     # The Godot status (e.g., "standard", "rc1", "dev1")
-    # Default: 'standard'
+    # Default: standard
     godot-status: ''
     
     # Set to true to run on Godot .Net version to run C# tests
@@ -27,15 +26,32 @@ This GitHub Action workflow runs GdUnit4 unit tests in Godot 4.x based on the sp
     godot-net: ''
     
     # The version of GdUnit4 to use. (e.g. "v4.2.0", "latest", "master").
-    # Default: 'latest'
-    gdunit-version: ''
+    # Default: latest
+    version: ''
     
     # The path to the directory containing test to execute.
-    gdunit-tests: ''
+    tests: ''
+
+    # The test execution timeout in minutes.
+    # Default: 10
+    timeout: ''
     
     # The name of the test report file.
     report-name: ''
 ```
+
+
+# Example
+This example runs all tests located under `res://myproject/tests` on Godot-4.2.1-standard with the latest GdUnit4 release.
+```yaml
+
+- uses: MikeSchulze/gdUnit4-action@v1
+  with:
+    godot-version: '4.2.1'
+    tests: 'res://myproject/tests'
+    report-name: 'test-result.xml'
+```
+
 
 ## License
 The scripts and documentation in this project are released under the [MIT License](./LICENSE)
