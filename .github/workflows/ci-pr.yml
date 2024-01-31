@@ -50,6 +50,7 @@ jobs:
           godot-status: ${{ matrix.godot-status }}
           version: ${{ matrix.version }}
           tests: 'res://tests/'
+          timeout: 2
           report-name: report_gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}.xml
 
       - name: 'Test gdUnit4-action@master: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}-net'
@@ -62,6 +63,7 @@ jobs:
           godot-net: true
           version: ${{ matrix.version }}
           tests: 'res://tests/mono'
+          timeout: 2
           report-name: report_gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}-net.xml
 
 

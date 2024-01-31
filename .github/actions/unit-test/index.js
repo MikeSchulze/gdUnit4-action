@@ -1,5 +1,5 @@
-const pathLib = require('path');
-const { spawn } = require('node:child_process');
+const pathLib = require("path");
+const { spawnSync } = require("node:child_process");
 
 function getProjectPath() {
   if (!process.env.GITHUB_WORKSPACE) {
@@ -8,31 +8,71 @@ function getProjectPath() {
   return pathLib.join(process.env.GITHUB_WORKSPACE, "./");
 }
 
-async function runTests(exeArgs) {
-  const godot_bin = process.env.GODOT_BIN;
-  const { timeout, tests } = exeArgs;
-  let args = [
-    '--auto-servernum',
-    './addons/gdUnit4/runtest.sh',
-    `--add ${ tests }`,
-    '--audio-driver Dummy',
-    '--display-driver x11',
-    '--rendering-driver opengl3',
-    '--single-window',
-    '--continue',
-    '--verbose'
+async function rebuildProjectCache() {
+  const args = [
+    "--auto-servernum",
+    `${process.env.GODOT_BIN}`,
+    "--headless",
+    "--audio-driver Dummy",
+    "-e",
+    "--path .",
+    "-s res://.github/scripts/build_project.gd",
   ];
 
-  console.log("Running GdUnit4 tests...", tests);
-  const child = spawn('xvfb-run', args, {
+  const child = spawnSync("xvfb-run", args, {
     cwd: getProjectPath(),
-    // timeout in minutes to ms
-    timeout: timeout * 1000 * 60,
-    detached: true, 
-    stdio: [ 'ignore' ]
+    timeout: 1000 * 60,
+    encoding: "utf-8",
+    shell: true,
+    stdio: ["inherit", "inherit", "ignore"],
+    env: process.env,
   });
-  child.stdout.on('data', (data) => console.log(data));
-  child.on('exit', (code) => console.log(`GdUnit4 process exited with exit code ${code}`)); 
+  console.log('child', child);
+  return child.status;
 }
 
-module.exports = runTests;
+
+async function runTests(exeArgs) {
+  try {
+    console.log("Start of the recovery of the project cache ...");
+    const exitCode = await rebuildProjectCache();
+    if (exitCode !== 0) {
+      console.log(
+        `Rebuild project cache failed with exit code ${exitCode}. Aborting tests.`
+      );
+      return exitCode;
+    }
+
+    const { timeout, tests } = exeArgs;
+    const args = [
+      "--auto-servernum",
+      "./addons/gdUnit4/runtest.sh",
+      `--add ${tests}`,
+      "--audio-driver Dummy",
+      "--display-driver x11",
+      "--rendering-driver opengl3",
+      "--single-window",
+      "--continue"
+    ];
+
+    console.log("Running GdUnit4 tests...", tests);
+    const child = spawnSync("xvfb-run", args, {
+      cwd: getProjectPath(),
+      timeout: timeout * 1000 * 60,
+      encoding: "utf-8",
+      shell: true,
+      stdio: ["inherit", "inherit", "inherit"],
+      env: process.env,
+    });
+
+    console.log(`GdUnit4 process exited with exit code ${child.status}`);
+    return child.status;
+  } catch (error) {
+    console.error(error.message);
+    return 1;
+  }
+}
+
+module.exports = {
+  runTests
+};

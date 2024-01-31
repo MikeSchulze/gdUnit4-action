@@ -1,5 +1,6 @@
 # Project-specific ignores
 .history
+.github/workflows/resources/.godot
 
 
 # System/tool-specific ignores
