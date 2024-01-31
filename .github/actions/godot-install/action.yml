@@ -42,7 +42,7 @@ runs:
         fi
 
         GODOT_PACKAGE=$GODOT_BIN.zip
-        wget $DOWNLOAD_URL/$GODOT_PACKAGE -P ${{ inputs.install-path }}
+        wget --progress=bar:force:noscroll $DOWNLOAD_URL/$GODOT_PACKAGE -P ${{ inputs.install-path }}
         unzip ${{ inputs.install-path }}/$GODOT_PACKAGE -d ${{ inputs.install-path }}
         rm -rf ${{ inputs.install-path }}/$GODOT_PACKAGE
 

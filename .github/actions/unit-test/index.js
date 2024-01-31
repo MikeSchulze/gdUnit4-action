@@ -24,27 +24,15 @@ async function runTests(exeArgs) {
   ];
 
   console.log("Running GdUnit4 tests...", tests);
-  const prg = spawn('xvfb-run', args, {
+  const child = spawn('xvfb-run', args, {
     cwd: getProjectPath(),
     // timeout in minutes to ms
     timeout: timeout * 1000 * 60,
+    detached: true, 
+    stdio: [ 'ignore' ]
   });
-
-  prg.stdout.on('data', (data) => {
-    console.log(new Buffer(data,'utf-8').toString());
-  });
-  
-  prg.on('close', (code) => {
-    console.log(`child process close all stdio with code ${code}`);
-  });
-  
-  prg.on('exit', (code) => {
-    console.log(`child process exited with code ${code}`);
-  }); 
-
-  //console.log("GdUnit4 results: ", results.stdout.toString(), results.stderr.toString());
-
-  
+  child.stdout.on('data', (data) => console.log(data));
+  child.on('exit', (code) => console.log(`GdUnit4 process exited with exit code ${code}`)); 
 }
 
 module.exports = runTests;

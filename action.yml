@@ -53,9 +53,9 @@ runs:
       shell: bash
       run: |
         if ${{inputs.godot-net == 'true'}}; then
-            echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status-version }}_mono" >> "$GITHUB_ENV"
+            echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status }}_NET" >> "$GITHUB_ENV"
         else
-            echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status-version }}" >> "$GITHUB_ENV"
+            echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status }}" >> "$GITHUB_ENV"
         fi
 
     - name: "Build Cache"
