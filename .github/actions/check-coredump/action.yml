@@ -40,7 +40,7 @@ runs:
 
     - name: "Upload Coredumps"
       if: always() && steps.collectlogs.outputs.coredumps == 'true'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Coredump_${{ inputs.artifact-name }}
         path: /var/lib/systemd/coredump
