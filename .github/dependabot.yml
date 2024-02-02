@@ -8,5 +8,29 @@ updates:
   - package-ecosystem: github-actions
     directory: '/'
     schedule:
-      interval: daily
-    open-pull-requests-limit: 5
+      interval: "weekly"
+      day: "sunday"
+
+  - package-ecosystem: github-actions
+    directory: '.github/actions/check-coredump/'
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+
+  - package-ecosystem: github-actions
+    directory: '.github/actions/godot-install/'
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+
+  - package-ecosystem: github-actions
+    directory: '.github/actions/publish-test-report/'
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+
+  - package-ecosystem: github-actions
+    directory: '.github/actions/upload-test-report/'
+    schedule:
+      interval: "weekly"
+      day: "sunday"
