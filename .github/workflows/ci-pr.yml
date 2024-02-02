@@ -28,6 +28,14 @@ jobs:
         godot-net: ['', '.Net']
         version: ['master', 'latest', 'v4.2.0']
 
+
+    permissions:
+      actions: write
+      checks: write
+      contents: write
+      pull-requests: write
+      statuses: write
+
     name: GdUnit4 '${{ matrix.version }}' - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}${{ matrix.godot-net }}
 
     steps:
