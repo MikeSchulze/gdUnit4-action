@@ -21,6 +21,12 @@ This GitHub Action automates the execution of GdUnit4 unit tests within the Godo
 | retries        | The number of retries if the tests fail.                | int    | false    | 0         |
 | report-name    | The name of the test report file.                        | string | false    | test-report.xml |
 
+
+
+### Note on Versioning:
+A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run on the latest release, use `latest`, and for the latest unreleased version, use `master`.
+
+
 ---
 
 ## Usage
@@ -43,14 +49,14 @@ This GitHub Action automates the execution of GdUnit4 unit tests within the Godo
     # Default: latest
     version: ''
     
-    # Comma-separated or newline-separated list of directory's containing test to execute..
+    # Comma-separated or newline-separated list of directories containing test to execute..
     paths: ''
 
     # The test execution timeout in minutes.
     # Default: 10
     timeout: ''
 
-    # The number of retries if the tests fail. (This can be used if the test flaky)
+    # The number of retries if the tests fail. (This can be used for flaky test)
     # Default: 0 
     retries: ''
     
@@ -60,7 +66,6 @@ This GitHub Action automates the execution of GdUnit4 unit tests within the Godo
     # The name of the test report file.
     report-name: ''
 ```
-
 
 ## Examples
 This example runs all tests located under `res://myproject/tests` on Godot-4.2.1-standard with the latest GdUnit4 release.
@@ -74,13 +79,13 @@ This example runs all tests located under `res://myproject/tests` on Godot-4.2.1
 ```
 
 
-In this example, all tests located in 'myproject1/tests' and 'myproject2/tests' are executed using the latest version of GdUnit4
+In this example, all tests located in 'myproject1/tests' and 'myproject2/tests' are executed using the master branch version of GdUnit4
 ```yaml
 - uses: actions/checkout@v4
 - uses: MikeSchulze/gdUnit4-action@v1
   with:
     godot-version: '4.2.1'
-    version: 'latest'
+    version: 'master'
     paths: |
       res://myproject1/tests
       res://myproject2/tests
