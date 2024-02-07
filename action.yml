@@ -81,6 +81,13 @@ runs:
     - name: 'Install gdUnit4 plugin - ${{ inputs.version }}'
       shell: bash
       run: |
+          if ${{ inputs.version == 'installed' }}; then
+            echo -e "\e[33m Info: Using the installed GdUnit4 plugin. \e[0m"
+            gdunit_version=$(grep -oP '^version="\K[^"]+' ./addons/gdUnit4/plugin.cfg)
+            echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
           if [[ -d ./addons/gdUnit4 ]]; then
             echo -e "\e[33m Info: Found a previous installation of GdUnit4, deleting it now. \e[0m"
             rm -rf ./addons/gdUnit4
