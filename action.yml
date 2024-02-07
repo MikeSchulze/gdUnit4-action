@@ -7,9 +7,9 @@ inputs:
     description: 'The version of Godot in which the tests should be run.'
     required: true
   godot-status:
-    description: 'The Godot status (e.g., "standard", "rc1", "dev1")'
+    description: 'The Godot status (e.g., "stable", "rc1", "dev1")'
     required: false
-    default: 'standard'
+    default: 'stable'
   godot-net:
     description: 'Set to true for Godot .Net (C#).'
     required: false
