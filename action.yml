@@ -83,7 +83,7 @@ runs:
       run: |
           if ${{ inputs.version == 'installed' }}; then
             echo -e "\e[33m Info: Using the installed GdUnit4 plugin. \e[0m"
-            gdunit_version=$(grep -oP '^version="\K[^"]+' ./addons/gdUnit4/plugin.cfg)
+            gdunit_version="v$(grep -oP '^version="\K[^"]+' ./addons/gdUnit4/plugin.cfg)"
             echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
             exit 0
           fi
