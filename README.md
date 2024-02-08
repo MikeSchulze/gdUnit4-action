@@ -24,7 +24,7 @@ This GitHub Action automates the execution of GdUnit4 unit tests within the Godo
 
 
 ### Note on Versioning:
-A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run on the latest release, use `latest`, and for the latest unreleased version, use `master`.
+A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run on the latest release, use `latest`, and for the latest unreleased version, use `master`. To keep the version installed in your project, use `installed`.
 
 
 ---
