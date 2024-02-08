@@ -12,7 +12,7 @@ This GitHub Action automates the execution of GdUnit4 unit tests within the Godo
 | Parameter      | Description                                              | Type   | Required | Default   |
 | -------------- | -------------------------------------------------------- | ------ | -------- | --------- |
 | godot-version  | The version of Godot in which the tests should be run.   | string | true     |           |
-| godot-status   | The Godot status (e.g., "standard", "rc1", "dev1").     | string | false    | standard  |
+| godot-status   | The Godot status (e.g., "stable", "rc1", "dev1").       | string | false    | stable    |
 | godot-net      | Set to true to run on Godot .Net version for C# tests.   | bool   | false    | false     |
 | version        | The version of GdUnit4 to use.                          | string | false    | latest    |
 | paths          | Comma-separated or newline-separated list of directories containing tests to execute. | string | true     |           |
@@ -37,8 +37,8 @@ A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run 
     # The version of Godot in which the tests should be run. (e.g., "4.2.1")
     godot-version: ''
     
-    # The Godot status (e.g., "standard", "rc1", "dev1")
-    # Default: standard
+    # The Godot status (e.g., "stable", "rc1", "dev1")
+    # Default: stable
     godot-status: ''
     
     # Set to true to run on Godot .Net version to run C# tests
@@ -68,7 +68,7 @@ A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run 
 ```
 
 ## Examples
-This example runs all tests located under `res://myproject/tests` on Godot-4.2.1-standard with the latest GdUnit4 release.
+This example runs all tests located under `res://myproject/tests` on Godot-4.2.1-stable with the latest GdUnit4 release.
 ```yaml
 - uses: actions/checkout@v4
 - uses: MikeSchulze/gdUnit4-action@v1
