@@ -1,17 +1,25 @@
 
 ---
 
-<h1 align="center">gdUnit4-action <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/MikeSchulze/gdunit4-action" height="32"> </h1>
+<h1 align="center">gdUnit4-action </h1>
+
+[![License](https://img.shields.io/github/license/MikeSchulze/gdunit4-action)](https://github.com/MikeSchulze/gdunit4-action/LICENSE)
+[![GitHub release badge](https://badgen.net/github/release/MikeSchulze/gdunit4-action/stable)](https://github.com/MikeSchulze/gdunit4-action/releases/latest)
+[![CI/CD](https://github.com/MikeSchulze/gdunit4-action/actions/workflows/ci-dev.yml/badge.svg)](https://github.com/MikeSchulze/gdunit4-action/actions/workflows/ci-dev.yml)
+
+
+
+
+
 
 This GitHub Action automates the execution of GdUnit4 unit tests within the Godot Engine 4.x environment.<br> It provides flexibility in configuring the Godot version, GdUnit4 version, test paths, and other parameters to suit your testing needs.
 
 
-* [Usage](#usage)
 * [Inputs](#inputs)
+* [Usage](#usage)
 * [Examples](#examples)
-* [Contributing](#contribution-guidelines)
 * [License](#license)
-
+* [Contributing](#contribution-guidelines)
 
 
 ---
@@ -100,7 +108,10 @@ In this example, all tests located in 'myproject1/tests' and 'myproject2/tests' 
     report-name: 'test-result.xml'
 ```
 
+---
 
+## License
+The scripts and documentation in this project are released under the [MIT License](./LICENSE)
 
 ---
 
@@ -124,5 +135,10 @@ We value your input and appreciate your contributions to make gdunit4-action eve
 
 ---
 
-## License
-The scripts and documentation in this project are released under the [MIT License](./LICENSE)
+
+
+## Contributors
+
+<a href="https://github.com/MishaKav/jest-coverage-comment/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=MikeSchulze/gdUnit4-action" alt="Contributors" />
+</a>
