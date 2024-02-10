@@ -5,6 +5,15 @@
 
 This GitHub Action automates the execution of GdUnit4 unit tests within the Godot Engine 4.x environment.<br> It provides flexibility in configuring the Godot version, GdUnit4 version, test paths, and other parameters to suit your testing needs.
 
+
+* [Usage](#usage)
+* [Inputs](#inputs)
+* [Examples](#examples)
+* [Contributing](#contribution-guidelines)
+* [License](#license)
+
+
+
 ---
 
 ## Inputs
@@ -20,7 +29,6 @@ This GitHub Action automates the execution of GdUnit4 unit tests within the Godo
 | timeout        | The test execution timeout in minutes.                  | int    | false    | 10        |
 | retries        | The number of retries if the tests fail.                | int    | false    | 0         |
 | report-name    | The name of the test report file.                        | string | false    | test-report.xml |
-
 
 
 ### Note on Versioning:
@@ -92,6 +100,29 @@ In this example, all tests located in 'myproject1/tests' and 'myproject2/tests' 
     report-name: 'test-result.xml'
 ```
 
+
+
+---
+
+### You Are Welcome To:
+  * [Give Feedback](https://github.com/MikeSchulze/gdUnit4-action/discussions) on the gdUnit GitHub Discussions page.
+  * [Suggest Improvements](https://github.com/MikeSchulze/gdUnit4-action/issues/new?assignees=MikeSchulze&labels=enhancement&template=feature_request.md&title=) by creating a new feature request issue on the gdUnit GitHub Issues page.
+  * [Report Bugs](https://github.com/MikeSchulze/gdUnit4-action/issues/new?assignees=MikeSchulze&labels=bug&projects=projects%2F5&template=bug_report.yml&title=GD-XXX%3A+Describe+the+issue+briefly)  by creating a new bug report issue on the gdUnit GitHub Issues page.
+
+
+---
+### Contribution Guidelines
+
+**Thank you for your interest in contributing to GdUnit4!**<br>
+To ensure a smooth and collaborative contribution process, please review our [contribution guidelines](https://github.com/MikeSchulze/gdUnit4-action/blob/master/CONTRIBUTING.md) before getting started. These guidelines outline the standards and expectations we uphold in this project.
+
+Code of Conduct: As a contributor, it is important to respect and follow this code to maintain a positive and inclusive community.
+
+Using GitHub Issues: We utilize GitHub issues for tracking feature requests and bug reports. If you have a general question or wish to engage in discussions, we recommend joining the [GdUnit Discord Server](https://discord.gg/rdq36JwuaJ) for specific inquiries.
+
+We value your input and appreciate your contributions to make gdunit4-action even better!
+
+---
 
 ## License
 The scripts and documentation in this project are released under the [MIT License](./LICENSE)
