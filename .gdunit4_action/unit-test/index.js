@@ -114,7 +114,7 @@ async function runTests(exeArgs, core) {
 
     let retriesCount = 0;
 
-    while (retriesCount < retries) {
+    while (retriesCount <= retries) {
       const child = spawnSync("xvfb-run", args, {
         cwd: getProjectPath(),
         timeout: timeout * 1000 * 60,
@@ -126,13 +126,17 @@ async function runTests(exeArgs, core) {
       exitCode = child.status;
       if (exitCode === 0) {
         break; // Exit loop if successful
-      } 
-      console_warning(`Tests failed with exit code: ${exitCode}. Retrying...`);
+      }
       retriesCount++;
+      if (retriesCount <= retries) {
+        console_warning(`The tests are failed with exit code: ${exitCode}. Retrying... ${retriesCount} of ${retries}`);
+      }
     }
 
     if (exitCode !== 0) {
-      core.setFailed(`Tests failed after ${retries} retries with exit code: ${exitCode}`);
+      core.setFailed(`The tests was failed after ${retries} retries with exit code: ${exitCode}`);
+    } else if (retriesCount > 0 && retries > 0) {
+      core.warning(`The tests was successfully after ${retriesCount} retries with exit code: ${exitCode}`);
     }
     return exitCode;
   } catch (error) {
