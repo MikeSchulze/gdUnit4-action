@@ -110,3 +110,8 @@ func test_override_failure_message() -> void:
 		.is_failed() \
 		.has_line(107) \
 		.has_message("Custom failure message")
+
+
+func test_fail_on_request() -> void:
+	if OS.get_environment("GDUNIT_FAIL") == "true":
+		fail("expect the action is failing")
