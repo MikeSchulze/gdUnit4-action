@@ -31,7 +31,7 @@ inputs:
   retries:
     description: 'The number of retries if the tests fail.'
     required: false
-    default: '0'
+    default: '1'
   report-name:
     description: 'The name of the test report file.'
     required: false
@@ -103,6 +103,7 @@ runs:
 
           # Remove test if no self test requested
           if [[ -d ./.install-gdunit4/addons/gdUnit4/test && ! "${{ env.GDUNIT_SELFTEST }}" ]]; then
+            echo "Delete 'addons/gdUnit4/test'"
             rm -rf ./.install-gdunit4/addons/gdUnit4/test
           fi
 
@@ -125,15 +126,15 @@ runs:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       uses: actions/github-script@v7
       with:
-        retries: ${{ inputs.retries }}
         script: |
           const { runTests } = require('./.gdunit4_action/unit-test/index.js')
           const args = {
             timeout: '${{ inputs.timeout }}',
             paths: `${{ inputs.paths }}`,
-            arguments: `${{ inputs.arguments }}`
+            arguments: `${{ inputs.arguments }}`,
+            retries: ${{ inputs.retries }}
           };
-          await runTests(args);
+          await runTests(args, core);
 
     - name: 'Publish Unit Test Reports'
       if: ${{ !cancelled() }}

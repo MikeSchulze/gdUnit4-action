@@ -78,17 +78,17 @@ async function rebuildProjectCache_() {
 }
 
 
-async function runTests(exeArgs) {
+async function runTests(exeArgs, core) {
   try {
     console_info("Start of the recovery of the project cache ...");
-    const exitCode = await rebuildProjectCache();
+    let exitCode = await rebuildProjectCache();
     if (exitCode !== 0) {
       console_error(`Rebuild project cache failed with exit code ${exitCode}. Aborting tests.`);
       return exitCode;
     }
     console_info("Project cache successfully restored.");
 
-    const { timeout, paths, arguments } = exeArgs;
+    const { timeout, paths, arguments, retries } = exeArgs;
     // Split by newline or comma, map, trim, and filter empty strings
     const pathsArray = paths.split(/[\r\n,]+/).map((entry) => entry.trim()).filter(Boolean);
     // verify support of multi paths/fixed since v4.2.1
@@ -111,19 +111,32 @@ async function runTests(exeArgs) {
     ];
 
     console_info(`Running GdUnit4 ${process.env.GDUNIT_VERSION} tests...`, getProjectPath(), args);
-    const child = spawnSync("xvfb-run", args, {
-      cwd: getProjectPath(),
-      timeout: timeout * 1000 * 60,
-      encoding: "utf-8",
-      shell: true,
-      stdio: ["inherit", "inherit", "inherit"],
-      env: process.env,
-    });
 
-    console_info(`GdUnit4 process exited with exit code ${child.status}`);
-    return child.status;
+    let retriesCount = 0;
+
+    while (retriesCount < retries) {
+      const child = spawnSync("xvfb-run", args, {
+        cwd: getProjectPath(),
+        timeout: timeout * 1000 * 60,
+        encoding: "utf-8",
+        shell: true,
+        stdio: ["inherit", "inherit", "inherit"],
+        env: process.env,
+      });
+      exitCode = child.status;
+      if (exitCode === 0) {
+        break; // Exit loop if successful
+      } 
+      console_warning(`Tests failed with exit code: ${exitCode}. Retrying...`);
+      retriesCount++;
+    }
+
+    if (exitCode !== 0) {
+      core.setFailed(`Tests failed after ${retries} retries with exit code: ${exitCode}`);
+    }
+    return exitCode;
   } catch (error) {
-    console_error(error.message);
+    core.setFailed(`Tests failed: ${error.message}`)
     return 1;
   }
 }
