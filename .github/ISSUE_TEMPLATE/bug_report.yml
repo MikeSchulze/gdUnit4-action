@@ -22,7 +22,8 @@ body:
       description: Which gdUnit4-action version are you using?
       options:
         - gdUnit4-action@master (Pre Release/Master branch)
-        - gdUnit4-action@v1 (Latest Release)
+        - gdUnit4-action@v1.0.1 (Latest Release)
+        - gdUnit4-action@v1
       default: 1
     validations:
       required: true
