@@ -109,7 +109,8 @@ runs:
 
           # Install requested gdUnit4 version
           echo -e "\e[34m Install GdUnit4 \e[92m${gdunit_version} \e[34mplugin in the project \e[0m"
-          cp -R ./.install-gdunit4/addons/gdUnit4 ./addons/
+          mkdir -p ./addons/gdUnit4/
+          cp -R ./.install-gdunit4/addons/gdUnit4 ./addons
           chmod +x ./addons/gdUnit4/runtest.sh
           echo -e "\e[34m Installed plugins\e[0m"
           echo -e "\e[34m -----------------\e[0m"
