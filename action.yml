@@ -132,7 +132,7 @@ runs:
       shell: bash
       run: |
         echo -e "\e[94mStart of the recovery of the project cache ...\e[0m"
-        $GODOT_BIN --path ./ -e --headless --quit-after 300 || true
+        $GODOT_BIN --path ./ -e --headless --quit-after 2000
         echo -e "\e[94mProject cache successfully restored.\e[0m"
 
     - name: 'Run Tests'
