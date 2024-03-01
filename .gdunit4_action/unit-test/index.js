@@ -24,70 +24,8 @@ function console_error(...args) {
   console.log('\x1b[31m', 'ERROR:', ...args, '\x1b[0m');
 }
 
-
-async function rebuildProjectCache() {
-  const args = [
-    "--auto-servernum",
-    `${process.env.GODOT_BIN}`,
-    "--headless",
-    "--audio-driver Dummy",
-    "-e",
-    "--path .",
-    "-s res://.gdunit4_action/scripts/build_project.gd",
-  ];
-
-  const child = spawnSync("xvfb-run", args, {
-    cwd: getProjectPath(),
-    timeout: 1000 * 60,
-    encoding: "utf-8",
-    shell: true,
-    stdio: ["ignore", "ignore", "ignore"],
-    env: process.env,
-  });
-  return child.status;
-}
-
-
-async function rebuildProjectCache_() {
-  const args = [
-    "--auto-servernum",
-    `${process.env.GODOT_BIN}`,
-    "--headless",
-    "--audio-driver Dummy",
-    "-e",
-    "--path .",
-    "-s res://.gdunit4_action/scripts/build_project.gd",
-  ];
-
-  // Use spawn instead of spawnSync
-  const child = spawn("xvfb-run", args, {
-    cwd: getProjectPath(),
-    timeout: 1000 * 60,
-    stdio: ["pipe", "pipe", "ignore"],  // Redirect stderr to dev/null
-    env: process.env,
-  });
-
-  // Return a promise that resolves when the process exits
-  return new Promise((resolve, reject) => {
-    child.stdout.on('data', (data) => console.log(data.toString()));
-    child.on('close', (code) => resolve(code));
-    child.on('error', (err) => {
-      reject(`Error spawning process: ${err}`);
-    });
-  });
-}
-
-
 async function runTests(exeArgs, core) {
   try {
-    console_info("Start of the recovery of the project cache ...");
-    let exitCode = await rebuildProjectCache();
-    if (exitCode !== 0) {
-      console_error(`Rebuild project cache failed with exit code ${exitCode}. Aborting tests.`);
-      return exitCode;
-    }
-    console_info("Project cache successfully restored.");
-
     const { timeout, paths, arguments, retries } = exeArgs;
     // Split by newline or comma, map, trim, and filter empty strings
     const pathsArray = paths.split(/[\r\n,]+/).map((entry) => entry.trim()).filter(Boolean);
