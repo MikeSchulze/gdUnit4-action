@@ -36,6 +36,7 @@ This GitHub Action automates the execution of GdUnit4 unit tests within the Godo
 | arguments      | Additional arguments to pass to GdUnit4<br> see https://mikeschulze.github.io/gdUnit4/advanced_testing/cmd/. | string | false    |           |
 | timeout        | The test execution timeout in minutes.                  | int    | false    | 10        |
 | retries        | The number of retries if the tests fail.                | int    | false    | 0         |
+| upload-report | Whether to upload the report file & logs as an artifact | bool    | false    | true      |
 | report-name    | The name of the test report file.                        | string | false    | test-report.xml |
 
 
@@ -52,19 +53,19 @@ A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run 
   with:
     # The version of Godot in which the tests should be run. (e.g., "4.2.1")
     godot-version: ''
-    
+
     # The Godot status (e.g., "stable", "rc1", "dev1")
     # Default: stable
     godot-status: ''
-    
+
     # Set to true to run on Godot .Net version to run C# tests
     # Default: false
     godot-net: ''
-    
+
     # The version of GdUnit4 to use. (e.g. "v4.2.0", "latest", "master").
     # Default: latest
     version: ''
-    
+
     # Comma-separated or newline-separated list of directories containing test to execute..
     paths: ''
 
@@ -73,9 +74,9 @@ A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run 
     timeout: ''
 
     # The number of retries if the tests fail. (This can be used for flaky test)
-    # Default: 0 
+    # Default: 0
     retries: ''
-    
+
     # Additional arguments to pass to GdUnit4 (see https://mikeschulze.github.io/gdUnit4/advanced_testing/cmd/).
     arguments: ''
 
