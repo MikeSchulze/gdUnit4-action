@@ -32,6 +32,10 @@ inputs:
     description: 'The number of retries if the tests fail.'
     required: false
     default: '0'
+  upload-report:
+    description: 'Whether the report & logs should be uploaded.'
+    required: false
+    default: true
   report-name:
     description: 'The name of the test report file.'
     required: false
@@ -152,13 +156,13 @@ runs:
           await runTests(args, core);
 
     - name: 'Publish Unit Test Reports'
-      if: ${{ !cancelled() }}
+      if: ${{ !cancelled() && inputs.upload-report == 'true' }}
       uses: ./.gdunit4_action/publish-test-report
       with:
         report-name: ${{ inputs.report-name }}
 
     - name: 'Upload Unit Test Reports'
-      if: ${{ !cancelled() }}
+      if: ${{ !cancelled() && inputs.upload-report == 'true' }}
       uses: ./.gdunit4_action/upload-test-report
       with:
         report-name: ${{ inputs.report-name }}
