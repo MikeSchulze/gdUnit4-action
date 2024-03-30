@@ -36,7 +36,7 @@ This GitHub Action automates the execution of GdUnit4 unit tests within the Godo
 | arguments      | Additional arguments to pass to GdUnit4<br> see https://mikeschulze.github.io/gdUnit4/advanced_testing/cmd/. | string | false    |           |
 | timeout        | The test execution timeout in minutes.                  | int    | false    | 10        |
 | retries        | The number of retries if the tests fail.                | int    | false    | 0         |
-| upload-report | Whether to upload the report file & logs as an artifact | bool    | false    | true      |
+| upload-report | Whether to publish & upload the report file | bool    | false    | true      |
 | report-name    | The name of the test report file.                        | string | false    | test-report.xml |
 
 

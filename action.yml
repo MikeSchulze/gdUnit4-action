@@ -156,13 +156,13 @@ runs:
           await runTests(args, core);
 
     - name: 'Publish Unit Test Reports'
-      if: ${{ !cancelled() }}
+      if: ${{ !cancelled() && inputs.upload-report == 'true' }}
       uses: ./.gdunit4_action/publish-test-report
       with:
         report-name: ${{ inputs.report-name }}
 
     - name: 'Upload Unit Test Reports'
-      if: ${{ !cancelled() }} && ${{ inputs.upload-report == 'true' }}
+      if: ${{ !cancelled() && inputs.upload-report == 'true' }}
       uses: ./.gdunit4_action/upload-test-report
       with:
         report-name: ${{ inputs.report-name }}
