@@ -2,11 +2,11 @@ const pathLib = require("path");
 const { spawn, spawnSync } = require("node:child_process");
 
 
-function getProjectPath() {
+function getProjectPath(project_dir) {
   if (!process.env.GITHUB_WORKSPACE) {
     throw new Error("GITHUB_WORKSPACE environment variable not set");
   }
-  return pathLib.join(process.env.GITHUB_WORKSPACE, "./");
+  return pathLib.join(process.env.GITHUB_WORKSPACE, project_dir);
 }
 
 
@@ -26,7 +26,7 @@ function console_error(...args) {
 
 async function runTests(exeArgs, core) {
   try {
-    const { timeout, paths, arguments, retries } = exeArgs;
+    const { project_dir, timeout, paths, arguments, retries } = exeArgs;
     // Split by newline or comma, map, trim, and filter empty strings
     const pathsArray = paths.split(/[\r\n,]+/).map((entry) => entry.trim()).filter(Boolean);
     // verify support of multi paths/fixed since v4.2.1
@@ -48,13 +48,14 @@ async function runTests(exeArgs, core) {
       `${arguments}`
     ];
 
-    console_info(`Running GdUnit4 ${process.env.GDUNIT_VERSION} tests...`, getProjectPath(), args);
+    const working_dir = getProjectPath(project_dir);
+    console_info(`Running GdUnit4 ${process.env.GDUNIT_VERSION} tests...`, working_dir, args);
 
     let retriesCount = 0;
 
     while (retriesCount <= retries) {
       const child = spawnSync("xvfb-run", args, {
-        cwd: getProjectPath(),
+        cwd: working_dir,
         timeout: timeout * 1000 * 60,
         encoding: "utf-8",
         shell: true,

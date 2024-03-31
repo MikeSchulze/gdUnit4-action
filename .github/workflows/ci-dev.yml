@@ -50,7 +50,7 @@ jobs:
         run: |
           mv -f .github/workflows/resources/* .
 
-      - name: 'Test gdUnit4-action@master: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}'
+      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}'
         if: ${{ matrix.godot-net == '' }}
         timeout-minutes: 5
         uses: ./
@@ -64,7 +64,7 @@ jobs:
           timeout: 2
           report-name: report_gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}.xml
 
-      - name: 'Test gdUnit4-action@master: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}-net'
+      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}-net'
         if: ${{ matrix.godot-net == '.Net' }}
         timeout-minutes: 5
         uses: ./
@@ -77,6 +77,48 @@ jobs:
           timeout: 2
           retries: 3 # We have set the number of repetitions to 3 because Godot mono randomly crashes during C# tests
           report-name: report_gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}-net.xml
+
+
+  unit-tests-custom-working-directory:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+
+    name: 'GdUnit4 action on custom working directory'
+
+    steps:
+      - name: 'Checkout gdUnit4-action'
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+  
+      - name: 'Install custom test project'
+        shell: bash
+        run: |
+          mv -f .github/workflows/custom_workpath/ ./custom_workpath/
+  
+      - name: 'Test gdUnit4-action: on custom project directory'
+        timeout-minutes: 5
+        uses: ./
+        with:
+          godot-version: 4.2.1
+          project_dir: './custom_workpath/'
+          paths: |
+            res://tests/
+          timeout: 2
+          report-name: report_gdUnit4-custom-working-directory.xml
+
+      - name: 'Test gdUnit4-action: on custom project directory C#'
+        timeout-minutes: 5
+        uses: ./
+        with:
+          godot-version: 4.2.1
+          godot-net: true
+          version: 'installed'
+          project_dir: './custom_workpath/'
+          paths: 'res://tests/'
+          timeout: 2
+          report-name: report_gdUnit4-custom-working-directory-net.xml
 
   # tests if the action reports test failures the action must fail
   action-fail-test:

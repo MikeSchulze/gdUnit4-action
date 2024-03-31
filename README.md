@@ -1,19 +1,11 @@
 
----
-
 <h1 align="center">gdUnit4-action </h1>
 
 [![License](https://img.shields.io/github/license/MikeSchulze/gdunit4-action)](https://github.com/MikeSchulze/gdunit4-action/LICENSE)
 [![GitHub release badge](https://badgen.net/github/release/MikeSchulze/gdunit4-action/stable)](https://github.com/MikeSchulze/gdunit4-action/releases/latest)
 [![CI/CD](https://github.com/MikeSchulze/gdunit4-action/actions/workflows/ci-dev.yml/badge.svg)](https://github.com/MikeSchulze/gdunit4-action/actions/workflows/ci-dev.yml)
 
-
-
-
-
-
 This GitHub Action automates the execution of GdUnit4 unit tests within the Godot Engine 4.x environment.<br> It provides flexibility in configuring the Godot version, GdUnit4 version, test paths, and other parameters to suit your testing needs.
-
 
 * [Inputs](#inputs)
 * [Usage](#usage)
@@ -21,32 +13,32 @@ This GitHub Action automates the execution of GdUnit4 unit tests within the Godo
 * [License](#license)
 * [Contributing](#contribution-guidelines)
 
-
 ---
 
 ## Inputs
 
-| Parameter      | Description                                              | Type   | Required | Default   |
-| -------------- | -------------------------------------------------------- | ------ | -------- | --------- |
-| godot-version  | The version of Godot in which the tests should be run.   | string | true     |           |
-| godot-status   | The Godot status (e.g., "stable", "rc1", "dev1").       | string | false    | stable    |
-| godot-net      | Set to true to run on Godot .Net version for C# tests.   | bool   | false    | false     |
-| version        | The version of GdUnit4 to use.                          | string | false    | latest    |
+| Parameter      | Description                                                   | Type   | Required | Default   |
+| -------------- | ------------------------------------------------------------- | ------ | -------- | --------- |
+| godot-version  | The version of Godot in which the tests should be run.        | string | true     |           |
+| godot-status   | The Godot status (e.g., "stable", "rc1", "dev1").             | string | false    | stable    |
+| godot-net      | Set to true to run on Godot .Net version for C# tests.        | bool   | false    | false     |
+| version        | The version of GdUnit4 to use.                                | string | false    | latest    |
+| project_dir    | The project directory in which the action is to be executed.  | string | false    | ./        |
 | paths          | Comma-separated or newline-separated list of directories containing tests to execute. | string | true     |           |
-| arguments      | Additional arguments to pass to GdUnit4<br> see https://mikeschulze.github.io/gdUnit4/advanced_testing/cmd/. | string | false    |           |
-| timeout        | The test execution timeout in minutes.                  | int    | false    | 10        |
-| retries        | The number of retries if the tests fail.                | int    | false    | 0         |
-| upload-report  | Whether to publish & upload the report file             | bool   | false    | true      |
-| report-name    | The name of the test report file.                        | string | false    | test-report.xml |
+| arguments      | Additional arguments to pass to GdUnit4<br> see <https://mikeschulze.github.io/gdUnit4/advanced_testing/cmd/>. | string | false    |           |
+| timeout        | The test execution timeout in minutes.                        | int    | false    | 10        |
+| retries        | The number of retries if the tests fail.                      | int    | false    | 0         |
+| upload-report  | Whether to publish & upload the report file                   | bool   | false    | true      |
+| report-name    | The name of the test report file.                             | string | false    | test-report.xml |
 
+### Note on Versioning
 
-### Note on Versioning:
 A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run on the latest release, use `latest`, and for the latest unreleased version, use `master`. To keep the version installed in your project, use `installed`.
-
 
 ---
 
 ## Usage
+
 ```yaml
 
 - uses: MikeSchulze/gdUnit4-action@v1
@@ -61,6 +53,11 @@ A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run 
     # Set to true to run on Godot .Net version to run C# tests
     # Default: false
     godot-net: ''
+
+    # The project directory in which the action is to be executed.
+    # The specified directory must end with a path separator. e.g. ./MyProject/
+    # Default: './'
+    project_dir: ''
 
     # The version of GdUnit4 to use. (e.g. "v4.2.0", "latest", "master").
     # Default: latest
@@ -85,7 +82,9 @@ A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run 
 ```
 
 ## Examples
+
 This example runs all tests located under `res://myproject/tests` on Godot-4.2.1-stable with the latest GdUnit4 release.
+
 ```yaml
 - uses: actions/checkout@v4
 - uses: MikeSchulze/gdUnit4-action@v1
@@ -95,8 +94,8 @@ This example runs all tests located under `res://myproject/tests` on Godot-4.2.1
     report-name: 'test-result.xml'
 ```
 
-
 In this example, all tests located in 'myproject1/tests' and 'myproject2/tests' are executed using the master branch version of GdUnit4
+
 ```yaml
 - uses: actions/checkout@v4
 - uses: MikeSchulze/gdUnit4-action@v1
@@ -110,6 +109,7 @@ In this example, all tests located in 'myproject1/tests' and 'myproject2/tests' 
 ```
 
 In this example, we run the tests but without a published test report.
+
 ```yaml
 - uses: actions/checkout@v4
 - uses: MikeSchulze/gdUnit4-action@v1
@@ -119,20 +119,41 @@ In this example, we run the tests but without a published test report.
     upload-report: false
 ```
 
+In this example, we have a custom project structure and needs to setup the `project_dir`
+
+```bash
+- root/
+  - MyProject/
+  - MyProject/src
+  - MyProject/tests
+```
+
+```yaml
+- uses: actions/checkout@v4
+- uses: MikeSchulze/gdUnit4-action@v1
+  with:
+    godot-version: '4.2.1'
+    project_dir: './MyProject/'
+    paths: 'res://tests'
+    
+```
+
 ---
 
 ## License
+
 The scripts and documentation in this project are released under the [MIT License](./LICENSE)
 
 ---
 
-### You Are Welcome To:
-  * [Give Feedback](https://github.com/MikeSchulze/gdUnit4-action/discussions) on the gdUnit GitHub Discussions page.
-  * [Suggest Improvements](https://github.com/MikeSchulze/gdUnit4-action/issues/new?assignees=MikeSchulze&labels=enhancement&template=feature_request.md&title=) by creating a new feature request issue on the gdUnit GitHub Issues page.
-  * [Report Bugs](https://github.com/MikeSchulze/gdUnit4-action/issues/new?assignees=MikeSchulze&labels=bug&projects=projects%2F5&template=bug_report.yml&title=GD-XXX%3A+Describe+the+issue+briefly)  by creating a new bug report issue on the gdUnit GitHub Issues page.
+### You Are Welcome To
 
+* [Give Feedback](https://github.com/MikeSchulze/gdUnit4-action/discussions) on the gdUnit GitHub Discussions page.
+* [Suggest Improvements](https://github.com/MikeSchulze/gdUnit4-action/issues/new?assignees=MikeSchulze&labels=enhancement&template=feature_request.md&title=) by creating a new feature request issue on the gdUnit GitHub Issues page.
+* [Report Bugs](https://github.com/MikeSchulze/gdUnit4-action/issues/new?assignees=MikeSchulze&labels=bug&projects=projects%2F5&template=bug_report.yml&title=GD-XXX%3A+Describe+the+issue+briefly)  by creating a new bug report issue on the gdUnit GitHub Issues page.
 
 ---
+
 ### Contribution Guidelines
 
 **Thank you for your interest in contributing to GdUnit4!**<br>
@@ -145,8 +166,6 @@ Using GitHub Issues: We utilize GitHub issues for tracking feature requests and 
 We value your input and appreciate your contributions to make gdunit4-action even better!
 
 ---
-
-
 
 ## Contributors
 

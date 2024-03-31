@@ -19,7 +19,7 @@ inputs:
     required: false
     default: latest
   paths:
-    description: 'Comma-separated or newline-separated list of directorys containing test to execute.'
+    description: 'Comma-separated or newline-separated list of directories containing test to execute.'
     required: true
   arguments:
     description: 'Additional arguments to run GdUnit4. (e.g. "--verbose")'
@@ -35,7 +35,11 @@ inputs:
   upload-report:
     description: 'Whether the report & logs should be uploaded.'
     required: false
-    default: true
+    default: 'true'
+  project_dir:
+    description: 'The project directory in which the action is to be executed. The specified directory must end with a path separator. e.g. ./MyProject/'
+    required: false
+    default: './'
   report-name:
     description: 'The name of the test report file.'
     required: false
@@ -84,6 +88,8 @@ runs:
     - name: 'Install gdUnit4 plugin - ${{ inputs.version }}'
       shell: bash
       run: |
+        echo -e "\e[33m Change to project directory: ${{ inputs.project_dir }} \e[0m"
+        cd "${{ inputs.project_dir }}"
         if ${{ inputs.version == 'installed' }}; then
           echo -e "\e[33m Info: Using the installed GdUnit4 plugin. \e[0m"
           gdunit_version="v$(grep -oP '^version="\K[^"]+' ./addons/gdUnit4/plugin.cfg)"
@@ -125,6 +131,7 @@ runs:
       shell: bash
       run: |
         if ${{ inputs.godot-net == 'true' }}; then
+          cd "${{ inputs.project_dir }}"
           dotnet restore
           dotnet build
         fi
@@ -135,6 +142,7 @@ runs:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       shell: bash
       run: |
+        cd "${{ inputs.project_dir }}"
         echo -e "\e[94mStart of the recovery of the project cache ...\e[0m"
         $GODOT_BIN --path ./ -e --headless --quit-after 2000
         echo -e "\e[94mProject cache successfully restored.\e[0m"
@@ -148,9 +156,10 @@ runs:
         script: |
           const { runTests } = require('./.gdunit4_action/unit-test/index.js')
           const args = {
-            timeout: '${{ inputs.timeout }}',
+            project_dir: `${{ inputs.project_dir }}`,
             paths: `${{ inputs.paths }}`,
             arguments: `${{ inputs.arguments }}`,
+            timeout: ${{ inputs.timeout }},
             retries: ${{ inputs.retries }}
           };
           await runTests(args, core);
@@ -159,10 +168,12 @@ runs:
       if: ${{ !cancelled() && inputs.upload-report == 'true' }}
       uses: ./.gdunit4_action/publish-test-report
       with:
+        project_dir: ${{ inputs.project_dir }}
         report-name: ${{ inputs.report-name }}
 
     - name: 'Upload Unit Test Reports'
       if: ${{ !cancelled() && inputs.upload-report == 'true' }}
       uses: ./.gdunit4_action/upload-test-report
       with:
+        project_dir: ${{ inputs.project_dir }}
         report-name: ${{ inputs.report-name }}
