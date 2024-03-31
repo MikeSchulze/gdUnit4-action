@@ -5,6 +5,10 @@ inputs:
   report-name:
     description: 'Name of the report to be upload.'
     required: true
+  project_dir:
+    description: 'The working directory to collect the reports.'
+    required: true
+    default: './'
 
 runs:
   using: composite
@@ -15,6 +19,6 @@ runs:
         retention-days: 10
         name: artifact_${{ inputs.report-name }}
         path: |
-          reports/**
+          ${{ inputs.project_dir }}reports/**
           /var/lib/systemd/coredump/**
           /var/log/syslog

@@ -5,16 +5,19 @@ inputs:
   report-name:
     description: 'Name of the check run which will be created.'
     required: true
+  project_dir:
+    description: 'The working directory to collect the results.'
+    required: true
+    default: './'
 
 runs:
   using: composite
   steps:
-
     - name: 'Publish Test Results'
       uses: dorny/test-reporter@v1.8.0
       with:
         name: ${{ inputs.report-name }}
-        path: 'reports/**/results.xml'
+        path: '${{ inputs.project_dir }}reports/**/results.xml'
         reporter: java-junit
         fail-on-error: 'false'
         fail-on-empty: 'false'
