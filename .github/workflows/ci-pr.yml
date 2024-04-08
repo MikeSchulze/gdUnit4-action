@@ -28,14 +28,12 @@ jobs:
         godot-net: ['', '.Net']
         version: ['master', 'latest', 'v4.2.0']
 
-
     permissions:
-      actions: write
+      actions: read
+      contents: read
       checks: write
-      contents: write
       pull-requests: write
       statuses: write
-
     name: GdUnit4 '${{ matrix.version }}' - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}${{ matrix.godot-net }}
 
     steps:
@@ -82,7 +80,12 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
-
+    permissions:
+      actions: read
+      contents: read
+      checks: write
+      pull-requests: write
+      statuses: write
     name: 'GdUnit4 action on custom working directory'
 
     steps:
@@ -125,7 +128,12 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
-
+    permissions:
+      actions: read
+      contents: read
+      checks: write
+      pull-requests: write
+      statuses: write
     name: 'GdUnit4 action fail test'
 
     steps:
