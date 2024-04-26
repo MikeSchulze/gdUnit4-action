@@ -134,14 +134,12 @@ runs:
         echo -e "\e[34m -----------------\e[0m"
 
     - name: 'Restore .Net Project'
-      if: ${{ !cancelled() }}
+      if: ${{ !cancelled() && inputs.godot-net == 'true' }}
       shell: bash
       run: |
-        if ${{ inputs.godot-net == 'true' }}; then
-          cd "${{ inputs.project_dir }}"
-          dotnet restore
-          dotnet build
-        fi
+        cd "${{ inputs.project_dir }}"
+        dotnet restore
+        dotnet build
 
     - name: 'Restore Godot project cache'
       if: ${{ !cancelled() }}
@@ -154,8 +152,8 @@ runs:
         $GODOT_BIN --path ./ -e --headless --quit-after 2000
         echo -e "\e[94mProject cache successfully restored.\e[0m"
 
-    - name: 'Run Tests'
-      if: ${{ !cancelled() }}
+    - name: 'Run GDScript Tests'
+      if: ${{ !cancelled() && inputs.godot-net == 'false' }}
       env:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       uses: actions/github-script@v7
@@ -170,6 +168,26 @@ runs:
             retries: ${{ inputs.retries }}
           };
           await runTests(args, core);
+
+    - name: 'Run C# Tests'
+      if: ${{ !cancelled() && inputs.godot-net == 'true' }}
+      env:
+        GODOT_BIN: '/home/runner/godot-linux/godot'
+      shell: bash
+      run: |
+        cd "${{ inputs.project_dir }}"
+        # test if a .runsettings file exists, if not use the action provided default .runsettings
+        if [ -f .runsettings ]; then
+          echo "Found `.runsettings` file."
+        else
+          echo "No project specific '.runsettings' found, using action default '.runsettings'"
+          cp ./.gdunit4_action/.runsettings .
+        fi
+        ls -lsa ./
+        dotnet test --settings .runsettings --list-tests
+        dotnet test --settings .runsettings --results-directory ./reports --logger "trx;LogFileName=results.xml" -v n
+        ls -lsa ./
+        ls -lsR ./reports
 
     - name: 'Publish Unit Test Reports'
       if: ${{ !cancelled() && inputs.upload-report == 'true' }}
