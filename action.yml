@@ -109,13 +109,7 @@ runs:
         fi
         echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
         echo "Checkout GdUnit4 from branch '${gdunit_version}'"
-        # We need to check if we running on a forked GdUnit4 repository
-        if [ "${{ github.repository_owner }}" != "MikeSchulze" ] && [ "${{ github.repository }}" == "${{ github.repository_owner }}/gdUnit4" ]; then
-          echo -e "\e[34m Workflow is running on a forked GdUnit4 repository. \e[0m"
-          git clone --quiet --depth 1 --branch ${gdunit_version} --single-branch https://github.com/${{ github.repository_owner }}/gdUnit4 ./.install-gdunit4
-        else
-          git clone --quiet --depth 1 --branch ${gdunit_version} --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
-        fi
+        git clone --quiet --depth 1 --branch ${gdunit_version} --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
 
         # Remove test if no self test requested
         if [[ -d ./.install-gdunit4/addons/gdUnit4/test && ! "${{ env.GDUNIT_SELFTEST }}" ]]; then
