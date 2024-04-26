@@ -32,6 +32,10 @@ inputs:
     description: 'The number of retries if the tests fail.'
     required: false
     default: '0'
+  publish-report:
+    description: 'Enable disable to publish the report. To disable to run on forked repositories.'
+    required: false
+    default: 'true'
   upload-report:
     description: 'Whether the report & logs should be uploaded.'
     required: false
@@ -109,13 +113,7 @@ runs:
         fi
         echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
         echo "Checkout GdUnit4 from branch '${gdunit_version}'"
-        # We need to check if we running on a forked GdUnit4 repository
-        if [ "${{ github.repository_owner }}" != "MikeSchulze" ] && [ "${{ github.repository }}" == "${{ github.repository_owner }}/gdUnit4" ]; then
-          echo -e "\e[34m Workflow is running on a forked GdUnit4 repository. \e[0m"
-          git clone --quiet --depth 1 --branch ${gdunit_version} --single-branch https://github.com/${{ github.repository_owner }}/gdUnit4 ./.install-gdunit4
-        else
-          git clone --quiet --depth 1 --branch ${gdunit_version} --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
-        fi
+        git clone --quiet --depth 1 --branch ${gdunit_version} --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
 
         # Remove test if no self test requested
         if [[ -d ./.install-gdunit4/addons/gdUnit4/test && ! "${{ env.GDUNIT_SELFTEST }}" ]]; then
@@ -190,7 +188,7 @@ runs:
         ls -lsR ./reports
 
     - name: 'Publish Unit Test Reports'
-      if: ${{ !cancelled() && inputs.upload-report == 'true' }}
+      if: ${{ !cancelled() && inputs.publish-report == 'true' }}
       uses: ./.gdunit4_action/publish-test-report
       with:
         project_dir: ${{ inputs.project_dir }}
