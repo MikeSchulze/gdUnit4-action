@@ -108,7 +108,12 @@ runs:
           gdunit_version=$(git ls-remote --refs --tags https://github.com/MikeSchulze/gdUnit4 v* | sort -t '/' -k 3 -V | tail -n 1 | cut -d '/' -f 3)
         fi
         echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
-        git clone --quiet --depth 1 --branch "${gdunit_version}" --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
+        if [ "${{ github.repository_owner }}" != "${{ github.event.repository.owner.login }}" ]; then
+          echo -e "\e[34m Workflow is running on a forked repository. \e[0m"
+          git clone --quiet --depth 1 --branch "${gdunit_version}" --single-branch "https://github.com/${{ github.repository_owner }}/gdUnit4" ./.install-gdunit4
+        else
+          git clone --quiet --depth 1 --branch "${gdunit_version}" --single-branch "https://github.com/MikeSchulze/gdUnit4" ./.install-gdunit4
+        fi
 
         # Remove test if no self test requested
         if [[ -d ./.install-gdunit4/addons/gdUnit4/test && ! "${{ env.GDUNIT_SELFTEST }}" ]]; then
