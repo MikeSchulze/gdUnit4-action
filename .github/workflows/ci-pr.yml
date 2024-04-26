@@ -168,6 +168,38 @@ jobs:
           exit 1
           
 
+  # tests do not build the report
+  test-disable-report:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+    permissions:
+      actions: read
+      contents: read
+    name: 'GdUnit4 action without report generation'
+
+    steps:
+      - name: 'Checkout gdUnit4-action'
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: 'Install test project'
+        shell: bash
+        run: |
+          mv -f .github/workflows/resources/* .
+
+      - name: 'Run failing failing test'
+        timeout-minutes: 3
+        uses: ./
+        with:
+          godot-version: 4.2.1
+          paths: |
+            res://tests/
+          publish-report: 'false'
+          report-name: artifact_action_create-report_false
+
+
   finalize:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest

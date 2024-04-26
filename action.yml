@@ -32,6 +32,10 @@ inputs:
     description: 'The number of retries if the tests fail.'
     required: false
     default: '0'
+  publish-report:
+    description: 'Enable disable to publish the report. To disable to run on forked repositories.'
+    required: false
+    default: 'true'
   upload-report:
     description: 'Whether the report & logs should be uploaded.'
     required: false
@@ -166,7 +170,7 @@ runs:
           await runTests(args, core);
 
     - name: 'Publish Unit Test Reports'
-      if: ${{ !cancelled() && inputs.upload-report == 'true' }}
+      if: ${{ !cancelled() && inputs.publish-report == 'true' }}
       uses: ./.gdunit4_action/publish-test-report
       with:
         project_dir: ${{ inputs.project_dir }}
