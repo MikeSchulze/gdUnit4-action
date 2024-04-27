@@ -180,7 +180,7 @@ runs:
           echo "Found `.runsettings` file."
         else
           echo "No project specific '.runsettings' found, using action default '.runsettings'"
-          cp /home/runner/.gdunit4_action/.runsettings .
+          cp $GITHUB_ACTION_PATH/.gdunit4_action/.runsettings .
         fi
         xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings --results-directory ./reports --logger "trx;LogFileName=results.xml"
 
