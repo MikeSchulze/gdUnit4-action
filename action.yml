@@ -182,11 +182,7 @@ runs:
           echo "No project specific '.runsettings' found, using action default '.runsettings'"
           cp ./.gdunit4_action/.runsettings .
         fi
-        ls -lsa ./
-        dotnet test --settings .runsettings --list-tests
-        dotnet test --settings .runsettings --results-directory ./reports --logger "trx;LogFileName=results.xml" -v n
-        ls -lsa ./
-        ls -lsR ./reports
+        xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings --results-directory ./reports --logger "trx;LogFileName=results.xml"
 
     - name: 'Publish Unit Test Reports'
       if: ${{ !cancelled() && inputs.publish-report == 'true' }}
