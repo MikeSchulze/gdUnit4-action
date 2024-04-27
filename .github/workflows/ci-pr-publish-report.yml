@@ -38,7 +38,7 @@ jobs:
         with:
           name: artifact_gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}${{ matrix.godot-net }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          repository: MikeSchulze/gdUnit4
+          repository: MikeSchulze/gdUnit4-action
           run-id: ${{ github.event.inputs.workflow_run_id || github.event.workflow_run.id }}
       - run: |
             ls -lsR ./
