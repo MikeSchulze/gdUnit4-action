@@ -98,6 +98,7 @@ runs:
           echo -e "\e[33m Info: Using the installed GdUnit4 plugin. \e[0m"
           gdunit_version="v$(grep -oP '^version="\K[^"]+' ./addons/gdUnit4/plugin.cfg)"
           echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
+          chmod +x ./addons/gdUnit4/runtest.sh
           exit 0
         fi
 

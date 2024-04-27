@@ -59,7 +59,8 @@ jobs:
             res://tests/
             res://tests-2/
           timeout: 2
-          report-name: report_gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}.xml
+          publish-report: false
+          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}
 
       - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}-net'
         if: ${{ matrix.godot-net == '.Net' }}
@@ -73,8 +74,9 @@ jobs:
           paths: 'res://tests/mono'
           timeout: 2
           retries: 3 # We have set the number of repetitions to 3 because Godot mono randomly crashes during C# tests
-          report-name: report_gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}-net.xml
 
+          publish-report: false
+          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}-net
 
   unit-tests-custom-working-directory:
     runs-on: ubuntu-22.04
@@ -108,7 +110,8 @@ jobs:
           paths: |
             res://tests/
           timeout: 2
-          report-name: report_gdUnit4-custom-working-directory.xml
+          publish-report: false
+          report-name: gdUnit4-custom-working-directory
 
       - name: 'Test gdUnit4-action: on custom project directory C#'
         timeout-minutes: 5
@@ -120,7 +123,8 @@ jobs:
           project_dir: './custom_workpath/'
           paths: 'res://tests/'
           timeout: 2
-          report-name: report_gdUnit4-custom-working-directory-net.xml
+          publish-report: false
+          report-name: gdUnit4-custom-working-directory-net
 
 
   # tests if the action reports test failures the action must fail
@@ -159,7 +163,8 @@ jobs:
           paths: |
             res://tests/
           timeout: 2
-          report-name: report_action_fail_gdUnit4.xml
+          publish-report: false
+          report-name: action_fail_gdUnit4
 
       - if: ${{ steps.test-fails.outcome != 'failure' }}
         shell: bash
@@ -196,9 +201,8 @@ jobs:
           godot-version: 4.2.1
           paths: |
             res://tests/
-          publish-report: 'false'
-          report-name: artifact_action_create-report_false
-
+          publish-report: false
+          report-name: action_create-report_false
 
   finalize:
     if: ${{ !cancelled() }}
