@@ -62,7 +62,7 @@ jobs:
             res://tests/
             res://tests-2/
           timeout: 2
-          report-name: report_gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}.xml
+          report-name: gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}
 
       - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}-net'
         if: ${{ matrix.godot-net == '.Net' }}
@@ -76,7 +76,7 @@ jobs:
           paths: 'res://tests/mono'
           timeout: 2
           retries: 3 # We have set the number of repetitions to 3 because Godot mono randomly crashes during C# tests
-          report-name: report_gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}-net.xml
+          report-name: gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}-net
 
 
   unit-tests-custom-working-directory:
@@ -111,7 +111,7 @@ jobs:
           paths: |
             res://tests/
           timeout: 2
-          report-name: report_gdUnit4-custom-working-directory.xml
+          report-name: gdUnit4-custom-working-directory
 
       - name: 'Test gdUnit4-action: on custom project directory C#'
         timeout-minutes: 5
@@ -123,7 +123,7 @@ jobs:
           project_dir: './custom_workpath/'
           paths: 'res://tests/'
           timeout: 2
-          report-name: report_gdUnit4-custom-working-directory-net.xml
+          report-name: gdUnit4-custom-working-directory-net
 
   # tests if the action reports test failures the action must fail
   action-fail-test:
@@ -161,7 +161,7 @@ jobs:
           paths: |
             res://tests/
           timeout: 2
-          report-name: report_action_fail_gdUnit4.xml
+          report-name: action_fail_gdUnit4
 
       - if: ${{ steps.test-fails.outcome != 'failure' }}
         shell: bash
