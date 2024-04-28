@@ -194,7 +194,7 @@ runs:
           echo "No project specific '.runsettings' found, using action default '.runsettings'"
           cp $GITHUB_ACTION_PATH/.gdunit4_action/.runsettings .
         fi
-        xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings --results-directory ./reports --logger "trx;LogFileName=results.xml"
+        xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings --results-directory ./reports --logger "trx;LogFileName=results.xml" -- GdUnit4.Parameters="--audio-driver Dummy --display-driver x11 --rendering-driver opengl3 --screen 0"
 
     - name: 'Publish Unit Test Reports'
       if: ${{ !cancelled() && inputs.publish-report == 'true' }}
