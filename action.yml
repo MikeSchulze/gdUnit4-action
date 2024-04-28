@@ -137,6 +137,10 @@ runs:
       shell: bash
       run: |
         cd "${{ inputs.project_dir }}"
+        # install required packages
+        dotnet add package Microsoft.NET.Test.Sdk
+        dotnet add package gdUnit4.api
+        dotnet add package gdUnit4.test.adapter
         dotnet restore
         dotnet build
 
