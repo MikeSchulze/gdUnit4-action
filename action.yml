@@ -133,14 +133,24 @@ runs:
         echo -e "\e[34m -----------------\e[0m"
 
     - name: 'Restore .Net Project'
-      if: ${{ !cancelled() }}
+      if: ${{ !cancelled() && inputs.godot-net == 'true' }}
       shell: bash
       run: |
-        if ${{ inputs.godot-net == 'true' }}; then
-          cd "${{ inputs.project_dir }}"
-          dotnet restore
-          dotnet build
+        cd "${{ inputs.project_dir }}"
+        # install required packages
+        dotnet add package Microsoft.NET.Test.Sdk
+        # for gdunit version less than 4.2.2 we need to load api version 4.2.1.1
+        gdUnitVersion=$(echo "${{ inputs.version }}" | sed 's/^v//; s/\.//g')
+        if [[ ${gdUnitVersion} < 422 ]]; then
+          echo "gdUnit4 version ${gdUnitVersion} less 4.2.2, update project to gdUnit4.api v4.2.1"
+          dotnet add package gdUnit4.api --version 4.2.1
+          dotnet add package gdUnit4.test.adapter --version 1.0.0
+        else
+          dotnet add package gdUnit4.api
+          dotnet add package gdUnit4.test.adapter
         fi
+        dotnet restore
+        dotnet build
 
     - name: 'Restore Godot project cache'
       if: ${{ !cancelled() }}
@@ -153,8 +163,8 @@ runs:
         $GODOT_BIN --path ./ -e --headless --quit-after 2000
         echo -e "\e[94mProject cache successfully restored.\e[0m"
 
-    - name: 'Run Tests'
-      if: ${{ !cancelled() }}
+    - name: 'Run GDScript Tests'
+      if: ${{ !cancelled() && inputs.godot-net == 'false' }}
       env:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       uses: actions/github-script@v7
@@ -169,6 +179,22 @@ runs:
             retries: ${{ inputs.retries }}
           };
           await runTests(args, core);
+
+    - name: 'Run C# Tests'
+      if: ${{ !cancelled() && inputs.godot-net == 'true' }}
+      env:
+        GODOT_BIN: '/home/runner/godot-linux/godot'
+      shell: bash
+      run: |
+        cd "${{ inputs.project_dir }}"
+        # test if a .runsettings file exists, if not use the action provided default .runsettings
+        if [ -f .runsettings ]; then
+          echo "Found `.runsettings` file."
+        else
+          echo "No project specific '.runsettings' found, using action default '.runsettings'"
+          cp $GITHUB_ACTION_PATH/.gdunit4_action/.runsettings .
+        fi
+        xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings --results-directory ./reports --logger "trx;LogFileName=results.xml"
 
     - name: 'Publish Unit Test Reports'
       if: ${{ !cancelled() && inputs.publish-report == 'true' }}
