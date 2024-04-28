@@ -141,6 +141,7 @@ runs:
         dotnet add package Microsoft.NET.Test.Sdk
         # for gdunit version less than 4.2.2 we need to load api version 4.2.1.1
         if (( $(echo "${{ inputs.version }} < 4.2.2" | bc -l) )); then
+          echo "gdUnit4 version less than 4.2.2, update project to gdUnit4.api v4.2.1.1"
           dotnet add package gdUnit4.api --version 4.2.1.1
         else
           dotnet add package gdUnit4.api
