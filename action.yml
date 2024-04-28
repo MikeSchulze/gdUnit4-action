@@ -162,6 +162,7 @@ runs:
         echo -e "\e[94mStart of the recovery of the project cache ...\e[0m"
         $GODOT_BIN --path ./ -e --headless --quit-after 2000
         echo -e "\e[94mProject cache successfully restored.\e[0m"
+        # set default reporter
 
     - name: 'Run GDScript Tests'
       if: ${{ !cancelled() && inputs.godot-net == 'false' }}
@@ -196,12 +197,22 @@ runs:
         fi
         xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings --results-directory ./reports --logger "trx;LogFileName=results.xml" -- GdUnit4.Parameters="--audio-driver Dummy --display-driver x11 --rendering-driver opengl3 --screen 0"
 
+    - name: 'Set Test Reporter'
+      shell: bash
+      run: |
+        if [[ ${{ inputs.godot-net == 'true' }} ]]; then
+          echo "ReportType=dotnet-trx" >> "$GITHUB_ENV"
+        else
+          echo "ReportType=java-junit" >> "$GITHUB_ENV"
+        fi
+
     - name: 'Publish Unit Test Reports'
       if: ${{ !cancelled() && inputs.publish-report == 'true' }}
       uses: ./.gdunit4_action/publish-test-report
       with:
         project_dir: ${{ inputs.project_dir }}
         report-name: ${{ inputs.report-name }}
+        reporter: ${{ env.ReportType }}
 
     - name: 'Upload Unit Test Reports'
       if: ${{ !cancelled() && inputs.upload-report == 'true' }}
