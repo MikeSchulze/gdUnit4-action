@@ -40,10 +40,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: MikeSchulze/gdUnit4-action
           run-id: ${{ github.event.inputs.workflow_run_id || github.event.workflow_run.id }}
-      - run: |
-          ls -ls ./
-          ls -lsR ./home/runner/work/gdUnit4-action/gdUnit4-action/
-          # ls -lsR ./home/runner/work/gdUnit4-action/gdUnit4-action/report
 
       - name: 'Publish Test Results'
         if: ${{ matrix.godot-net == '' }}
