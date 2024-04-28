@@ -9,6 +9,11 @@ inputs:
     description: 'The working directory to collect the results.'
     required: true
     default: './'
+  reporter:
+    description: 'The report format to build the report'
+    required: false
+    default: 'java-junit'
+  
 
 runs:
   using: composite
@@ -18,6 +23,6 @@ runs:
       with:
         name: ${{ inputs.report-name }}
         path: '${{ inputs.project_dir }}reports/**/results.xml'
-        reporter: java-junit
+        reporter: ${{ inputs.reporter }}
         fail-on-error: 'false'
         fail-on-empty: 'false'
