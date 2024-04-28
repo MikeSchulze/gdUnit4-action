@@ -113,6 +113,11 @@ jobs:
           timeout: 2
           report-name: gdUnit4-custom-working-directory
 
+      - name: 'Cleanup reports from previous run'
+        shell: bash
+        run: |
+          rm -rf ./custom_workpath/reports/
+
       - name: 'Test gdUnit4-action: on custom project directory C#'
         timeout-minutes: 5
         uses: ./
