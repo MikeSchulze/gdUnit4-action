@@ -14,6 +14,10 @@ inputs:
     description: 'Set to true for Godot .Net (C#).'
     required: false
     default: 'false'
+  godot-force-mono:
+    description: 'Force test run to use Godot Mono version'
+    required: false
+    default: 'false'
   version:
     description: 'The version of GdUnit4 to use. (e.g. "v4.2.0", "latest", "master").'
     required: false
@@ -65,11 +69,13 @@ runs:
     - name: 'Set Cache Name'
       shell: bash
       run: |
-        if ${{inputs.godot-net == 'true'}}; then
+        if ${{inputs.godot-net == 'true' || inputs.godot-force-mono == 'true'}}; then
             echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status }}_NET" >> "$GITHUB_ENV"
         else
             echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status }}" >> "$GITHUB_ENV"
         fi
+
+        echo "RUN_GDSCRIPT_TESTS=${{inputs.godot-net == 'false'}}" >> "$GITHUB_ENV"
 
     - name: 'Build Cache'
       uses: actions/cache@v4
@@ -123,7 +129,7 @@ runs:
         fi
 
         # Install requested gdUnit4 version
-        echo -e "\e[34m Install GdUnit4 \e[92m${gdunit_version} \e[34mplugin in the project \e[0m"
+        echo -e "\e[34m Install GdUnit4 \e[92m${gdunit_version} \e[34m plugin in the project \e[0m"
         mkdir -p ./addons/gdUnit4/
         cp -R ./.install-gdunit4/addons/gdUnit4 ./addons
         chmod +x ./addons/gdUnit4/runtest.sh
@@ -133,7 +139,7 @@ runs:
         echo -e "\e[34m -----------------\e[0m"
 
     - name: 'Restore .Net Project'
-      if: ${{ !cancelled() && inputs.godot-net == 'true' }}
+      if: ${{ !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true')}}
       shell: bash
       run: |
         cd "${{ inputs.project_dir }}"
@@ -165,7 +171,7 @@ runs:
 
     ## GDScript test run
     - name: 'Run GDScript Tests'
-      if: ${{ !cancelled() && inputs.godot-net == 'false' }}
+      if: ${{ !cancelled() && env.RUN_GDSCRIPT_TESTS == 'true'}}
       env:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       uses: actions/github-script@v7
@@ -182,7 +188,7 @@ runs:
           await runTests(args, core);
 
     - name: 'Publish GDScript Unit Test Reports'
-      if: ${{ !cancelled() && inputs.publish-report == 'true' && inputs.godot-net == 'false'}}
+      if: ${{ !cancelled() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'true'}}
       uses: ./.gdunit4_action/publish-test-report
       with:
         project_dir: ${{ inputs.project_dir }}
@@ -191,7 +197,7 @@ runs:
 
     ## .Net test run
     - name: 'Run C# Tests'
-      if: ${{ !cancelled() && inputs.godot-net == 'true' }}
+      if: ${{ !cancelled() && env.RUN_GDSCRIPT_TESTS == 'false' }}
       env:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       shell: bash
@@ -207,7 +213,7 @@ runs:
         xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings --results-directory ./reports --logger "trx;LogFileName=results.xml" -- GdUnit4.Parameters="--audio-driver Dummy --display-driver x11 --rendering-driver opengl3 --screen 0"
 
     - name: 'Publish .Net Unit Test Reports'
-      if: ${{ !cancelled() && inputs.publish-report == 'true' && inputs.godot-net == 'true'}}
+      if: ${{ !cancelled() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'false' }}
       uses: ./.gdunit4_action/publish-test-report
       with:
         project_dir: ${{ inputs.project_dir }}
