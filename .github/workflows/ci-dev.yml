@@ -25,7 +25,7 @@ jobs:
       fail-fast: false
       max-parallel: 10
       matrix:
-        godot-version: ['4.2', '4.2.1']
+        godot-version: ['4.2', '4.2.1', '4.2.2']
         godot-status: ['stable']
         godot-net: ['', '.Net']
         version: ['latest']
@@ -106,7 +106,7 @@ jobs:
         timeout-minutes: 5
         uses: ./
         with:
-          godot-version: 4.2.1
+          godot-version: 4.2.2
           project_dir: './custom_workpath/'
           paths: |
             res://tests/
@@ -122,13 +122,50 @@ jobs:
         timeout-minutes: 5
         uses: ./
         with:
-          godot-version: 4.2.1
+          godot-version: 4.2.2
           godot-net: true
           version: 'installed'
           project_dir: './custom_workpath/'
           paths: 'res://tests/'
           timeout: 2
           report-name: gdUnit4-custom-working-directory-net
+
+
+  # run gdscript tests with using Godot Mono executable
+  unit-tests-force-godot-mono:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+    permissions:
+      actions: read
+      contents: read
+      checks: write
+      pull-requests: write
+      statuses: write
+    name: 'GdUnit4 action with force run Godot Mono'
+
+    steps:
+      - name: 'Checkout gdUnit4-action'
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+  
+      - name: 'Install custom test project'
+        shell: bash
+        run: |
+          mv -f .github/workflows/resources/* .
+  
+      - name: 'Test gdUnit4-action: force run Godot Mono'
+        timeout-minutes: 5
+        uses: ./
+        with:
+          godot-version: 4.2.2
+          godot-force-mono : 'true'
+          paths: |
+            res://tests/
+          timeout: 2
+          report-name: gdUnit4-force-mono
+
 
   # tests if the action reports test failures the action must fail
   action-fail-test:
@@ -162,7 +199,7 @@ jobs:
           GDUNIT_FAIL: 'true'
         uses: ./
         with:
-          godot-version: 4.2.1
+          godot-version: 4.2.2
           paths: |
             res://tests/
           timeout: 2
@@ -178,7 +215,7 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     name: 'Final Results'
-    needs: [unit-tests, action-fail-test]
+    needs: [unit-tests, unit-tests-force-godot-mono, unit-tests-custom-working-directory, action-fail-test]
     steps:
       - run: exit 1
         if: >-

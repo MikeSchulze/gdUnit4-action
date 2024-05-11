@@ -17,20 +17,21 @@ This GitHub Action automates the execution of GdUnit4 unit tests within the Godo
 
 ## Inputs
 
-| Parameter      | Description                                                                           | Type   | Required | Default   |
-| -------------- | ------------------------------------------------------------------------------------- | ------ | -------- | --------- |
-| godot-version  | The version of Godot in which the tests should be run.                                | string | true     |           |
-| godot-status   | The Godot status (e.g., "stable", "rc1", "dev1").                                     | string | false    | stable    |
-| godot-net      | Set to true to run on Godot .Net version for C# tests.                                | bool   | false    | false     |
-| version        | The version of GdUnit4 to use.                                                        | string | false    | latest    |
-| project_dir    | The project directory in which the action is to be executed.                          | string | false    | ./        |
-| paths          | Comma-separated or newline-separated list of directories containing tests to execute. | string | true     |           |
-| arguments      | Additional arguments to pass to GdUnit4<br> see <https://mikeschulze.github.io/gdUnit4/advanced_testing/cmd/>. | string | false    |           |
-| timeout        | The test execution timeout in minutes.                                                | int    | false    | 10        |
-| retries        | The number of retries if the tests fail.                                              | int    | false    | 0         |
-| publish-report | Enable disable to publish the report. To disable to run on forked repositories.       | bool   | false    | true      |
-| upload-report  | Enables/Disables to upload the report file                                            | bool   | false    | true      |
-| report-name    | The name of the test report file.                                                     | string | false    | test-report.xml |
+| Parameter        | Description                                                                           | Type   | Required | Default   |
+| --------------   | ------------------------------------------------------------------------------------- | ------ | -------- | --------- |
+| godot-version    | The version of Godot in which the tests should be run.                                | string | true     |           |
+| godot-status     | The Godot status (e.g., "stable", "rc1", "dev1").                                     | string | false    | stable    |
+| godot-net        | Set to true to run on Godot .Net version for C# tests.                                | bool   | false    | false     |
+| godot-force-mono | Set to true to enforce running GDScript test with Godot Mono executable               | bool   | false    | false     |
+| version          | The version of GdUnit4 to use.                                                        | string | false    | latest    |
+| project_dir      | The project directory in which the action is to be executed.                          | string | false    | ./        |
+| paths            | Comma-separated or newline-separated list of directories containing tests to execute. | string | true     |           |
+| arguments        | Additional arguments to pass to GdUnit4<br> see <https://mikeschulze.github.io/gdUnit4/advanced_testing/cmd/>. | string | false    |           |
+| timeout          | The test execution timeout in minutes.                                                | int    | false    | 10        |
+| retries          | The number of retries if the tests fail.                                              | int    | false    | 0         |
+| publish-report   | Enable disable to publish the report. To disable to run on forked repositories.       | bool   | false    | true      |
+| upload-report    | Enables/Disables to upload the report file                                            | bool   | false    | true      |
+| report-name      | The name of the test report file.                                                     | string | false    | test-report.xml |
 
 ### Note on Versioning
 
@@ -54,6 +55,10 @@ A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run 
     # Set to true to run on Godot .Net version to run C# tests
     # Default: false
     godot-net: ''
+
+    # Set to true to force running GDScript tests by using the Godot Mono executable
+    # Default: false
+    godot-force-mono: ''
 
     # The project directory in which the action is to be executed.
     # The specified directory must end with a path separator. e.g. ./MyProject/
