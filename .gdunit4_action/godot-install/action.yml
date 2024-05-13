@@ -1,13 +1,13 @@
 name: install-godot-binary
-description: "Installs the Godot Runtime"
+description: 'Installs the Godot Runtime'
 
 inputs:
   godot-version:
-    description: "The Godot engine version"
+    description: 'The Godot engine version'
     type: string
     required: true
   godot-status-version:
-    description: "The Godot engine status version"
+    description: 'The Godot engine status version'
     type: string
     required: true
   godot-net:
@@ -21,8 +21,7 @@ inputs:
 runs:
   using: composite
   steps:
-
-    - name: "Download and Install Godot ${{ inputs.godot-version }}-${{ inputs.godot-status-version }}"
+    - name: 'Download and Install Godot ${{ inputs.godot-version }}-${{ inputs.godot-status-version }}'
       if: steps.godot-cache-binary.outputs.cache-hit != 'true'
       continue-on-error: false
       shell: bash
@@ -42,6 +41,7 @@ runs:
         fi
 
         GODOT_PACKAGE=$GODOT_BIN.zip
+        echo "Download URL: $DOWNLOAD_URL/$GODOT_PACKAGE"
         wget --progress=bar:force:noscroll $DOWNLOAD_URL/$GODOT_PACKAGE -P ${{ inputs.install-path }}
         unzip ${{ inputs.install-path }}/$GODOT_PACKAGE -d ${{ inputs.install-path }}
         rm -rf ${{ inputs.install-path }}/$GODOT_PACKAGE
