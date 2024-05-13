@@ -91,9 +91,14 @@ runs:
       uses: ./.gdunit4_action/godot-install
       with:
         godot-version: ${{ inputs.godot-version }}
-        godot-net: ${{ inputs.godot-net }}
+        godot-net: ${{inputs.godot-net == 'true' || inputs.godot-force-mono == 'true'}}
         godot-status-version: ${{ inputs.godot-status }}
         install-path: '/home/runner/godot-linux'
+
+    - name: 'print restored version - ${{ inputs.version }}'
+      shell: bash
+      run: |
+        /home/runner/godot-linux/godot --version
 
     - name: 'Install gdUnit4 plugin - ${{ inputs.version }}'
       shell: bash
