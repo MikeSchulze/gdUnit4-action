@@ -37,6 +37,24 @@ This GitHub Action automates the execution of GdUnit4 unit tests within the Godo
 
 A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run on the latest release, use `latest`, and for the latest unreleased version, use `master`. To keep the version installed in your project, use `installed`.
 
+### Note on forked repositories
+
+For forked repositories, you will receive a `HttpError: Resource not accessible by integration` at the `publish-test-report` step.
+For more details, [read more here](https://github.com/dorny/test-reporter?tab=readme-ov-file#recommended-setup-for-public-repositories)
+You must therefore set `publish-report: false` to disable reporting and specify the `report-name` that will be used to upload the report artifact.
+
+Example:
+```yaml
+      uses: MikeSchulze/gdUnit4-action@v1.1.1
+        with:
+          paths: |
+            res://my_project/test/
+          timeout: 10
+          publish-report: false
+          report-name: my_project
+```
+The uploaded artifact is created with the name "artifact_<report_name>", in the example it would be called "artifact_my_project".
+
 ---
 
 ## Usage
@@ -65,7 +83,7 @@ A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run 
     # Default: './'
     project_dir: ''
 
-    # The version of GdUnit4 to use. (e.g. "v4.2.0", "latest", "master").
+    # The version of GdUnit4 to use. (e.g. "v4.2.0", "latest", "master", "installed").
     # Default: latest
     version: ''
 
