@@ -123,7 +123,7 @@ This example runs all tests located under `res://myproject/tests` on Godot-4.2.1
   with:
     godot-version: '4.2.1'
     paths: 'res://myproject/tests'
-    report-name: 'test-result.xml'
+    report-name: 'myproject-test-result'
 ```
 
 In this example, all tests located in 'myproject1/tests' and 'myproject2/tests' are executed using the master branch version of GdUnit4
@@ -137,7 +137,7 @@ In this example, all tests located in 'myproject1/tests' and 'myproject2/tests' 
     paths: |
       res://myproject1/tests
       res://myproject2/tests
-    report-name: 'test-result.xml'
+    report-name: 'myproject-test-result'
 ```
 
 In this example, we run the tests but without a published test report.
