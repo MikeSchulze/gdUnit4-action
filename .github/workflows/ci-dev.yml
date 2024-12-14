@@ -27,7 +27,7 @@ jobs:
       matrix:
         godot-version: ['4.2', '4.2.1', '4.2.2', '4.3']
         godot-status: ['stable']
-        godot-net: ['', '.Net']
+        godot-net: ['', 'net7.0', 'net8.0']
         version: ['master', 'latest']
 
     permissions:
@@ -50,7 +50,7 @@ jobs:
         run: |
           mv -f .github/workflows/resources/* .
 
-      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}'
+      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}'
         if: ${{ matrix.godot-net == '' }}
         timeout-minutes: 5
         uses: ./
@@ -62,10 +62,12 @@ jobs:
             res://tests/
             res://tests-2/
           timeout: 2
-          report-name: gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}
+          report-name: gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}
 
-      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}-net'
-        if: ${{ matrix.godot-net == '.Net' }}
+      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-net }}'
+        if: ${{ matrix.godot-net != '' }}
+        env:
+          DOTNET_VERSION: ${{ matrix.godot-net }}
         timeout-minutes: 5
         uses: ./
         with:
@@ -76,7 +78,7 @@ jobs:
           paths: 'res://tests/mono'
           timeout: 2
           retries: 3 # We have set the number of repetitions to 3 because Godot mono randomly crashes during C# tests
-          report-name: gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}-net
+          report-name: gdUnit4-${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.godot-net }}
 
 
   unit-tests-custom-working-directory:
@@ -131,7 +133,7 @@ jobs:
           report-name: gdUnit4-custom-working-directory-net
 
 
-  # run gdscript tests with using Godot Mono executable
+  # run gdscript tests with using Godot .Net executable
   unit-tests-force-godot-mono:
     runs-on: ubuntu-22.04
     strategy:
@@ -142,7 +144,7 @@ jobs:
       checks: write
       pull-requests: write
       statuses: write
-    name: 'GdUnit4 action with force run Godot Mono'
+    name: 'GdUnit4 action with force run Godot .Net'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -155,7 +157,9 @@ jobs:
         run: |
           mv -f .github/workflows/resources/* .
   
-      - name: 'Test gdUnit4-action: force run Godot Mono'
+      - name: 'Test gdUnit4-action: force run Godot .Net'
+        env:
+          DOTNET_VERSION: 'net8.0'
         timeout-minutes: 5
         uses: ./
         with:
