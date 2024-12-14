@@ -37,7 +37,7 @@ jobs:
       pull-requests: write
       statuses: write
 
-    name: GdUnit4 '${{ matrix.version }}' - Godot_${{ matrix.godot-version }}-${{ matrix.godot-net }}
+    name: 'GdUnit4 ${{ matrix.version }} on Godot_${{ matrix.godot-version }} ${{ matrix.godot-net }}'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -82,7 +82,7 @@ jobs:
 
 
   unit-tests-custom-working-directory:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
     permissions:
@@ -135,7 +135,7 @@ jobs:
 
   # run gdscript tests with using Godot .Net executable
   unit-tests-force-godot-mono:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
     permissions:
@@ -173,7 +173,7 @@ jobs:
 
   # tests if the action reports test failures the action must fail
   action-fail-test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
     permissions:

@@ -144,15 +144,16 @@ runs:
         echo -e "\e[34m -----------------\e[0m"
 
     - name: 'Restore .Net Project'
-      if: ${{ !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true')}}
+      if: ${{ !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
       shell: bash
       run: |
         cd "${{ inputs.project_dir }}"
-        # install required packages
-        dotnet add package Microsoft.NET.Test.Sdk
+         
+        dotnet add package Microsoft.NET.Test.Sdk --version 17.9.0
         # for gdunit version less than 4.2.2 we need to load api version 4.2.1.1
         gdUnitVersion=$(echo "${{ inputs.version }}" | sed 's/^v//; s/\.//g')
         if [[ ${gdUnitVersion} < 422 ]]; then
+          # install required packages
           echo "gdUnit4 version ${gdUnitVersion} less 4.2.2, update project to gdUnit4.api v4.2.1"
           dotnet add package gdUnit4.api --version 4.2.1
           dotnet add package gdUnit4.test.adapter --version 1.0.0
@@ -160,8 +161,11 @@ runs:
           dotnet add package gdUnit4.api
           dotnet add package gdUnit4.test.adapter
         fi
+        
+        dotnet --version
         dotnet restore
         dotnet build
+        dotnet list package
 
     - name: 'Restore Godot project cache'
       if: ${{ !cancelled() }}
