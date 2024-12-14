@@ -25,7 +25,7 @@ jobs:
       matrix:
         godot-version: ['4.2', '4.2.1', '4.2.2', '4.3']
         godot-status: ['stable']
-        godot-net: ['', '.Net']
+        godot-net: ['', 'net7.0', 'net8.0']
         version: ['master', 'latest', 'v4.2.0']
 
     permissions:
@@ -34,7 +34,7 @@ jobs:
       checks: write
       pull-requests: write
       statuses: write
-    name: GdUnit4 '${{ matrix.version }}' - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}${{ matrix.godot-net }}
+    name: 'GdUnit4 ${{ matrix.version }} on Godot_${{ matrix.godot-version }} ${{ matrix.godot-net }}'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -47,7 +47,7 @@ jobs:
         run: |
           mv -f .github/workflows/resources/* .
 
-      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}'
+      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}'
         if: ${{ matrix.godot-net == '' }}
         timeout-minutes: 5
         uses: ./
@@ -60,10 +60,12 @@ jobs:
             res://tests-2/
           timeout: 2
           publish-report: false
-          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}
+          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}
 
-      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-status }}-net'
-        if: ${{ matrix.godot-net == '.Net' }}
+      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-net }}'
+        if: ${{ matrix.godot-net != '' }}
+        env:
+          DOTNET_VERSION: ${{ matrix.godot-net }}
         timeout-minutes: 5
         uses: ./
         with:
@@ -73,10 +75,10 @@ jobs:
           version: ${{ matrix.version }}
           paths: 'res://tests/mono'
           timeout: 2
-          retries: 3 # We have set the number of repetitions to 3 because Godot mono randomly crashes during C# tests
+          retries: 3 # We have set the number of repetitions to 3 because Godot .Net randomly crashes during C# tests
 
           publish-report: false
-          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}-net
+          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.godot-net }}
 
   unit-tests-custom-working-directory:
     runs-on: ubuntu-22.04
@@ -127,7 +129,7 @@ jobs:
           report-name: gdUnit4-custom-working-directory-net
 
 
-  # run gdscript tests with using Godot Mono executable
+  # run gdscript tests with using Godot Net executable
   unit-tests-force-godot-mono:
     runs-on: ubuntu-22.04
     strategy:
@@ -138,7 +140,7 @@ jobs:
       checks: write
       pull-requests: write
       statuses: write
-    name: 'GdUnit4 action with force run Godot Mono'
+    name: 'GdUnit4 action with force run Godot net8.0'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -151,7 +153,9 @@ jobs:
         run: |
           mv -f .github/workflows/resources/* .
   
-      - name: 'Test gdUnit4-action: force run Godot Mono'
+      - name: 'Test gdUnit4-action: force run Godot net8.0'
+        env:
+          DOTNET_VERSION: 'net8.0'
         id: test-force-mono
         timeout-minutes: 5
         uses: ./
