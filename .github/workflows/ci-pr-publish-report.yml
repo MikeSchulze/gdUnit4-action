@@ -55,7 +55,7 @@ jobs:
           fail-on-empty: 'false'
       
       - name: 'Publish Test Adapter Results'
-        if: ${{ matrix.godot-net == '-net' }}
+        if: ${{ matrix.godot-net != '' }}
         uses: dorny/test-reporter@v1.9.1
         with:
           name: report_gdUnit4_Godot${{ matrix.godot-version }}-${{ matrix.godot-net }}
