@@ -18,7 +18,7 @@ concurrency:
 jobs:
 
   unit-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.godot-net == 'net7.0' && 'ubuntu-22.04' || 'ubuntu-24.04' }}
     strategy:
       fail-fast: false
       max-parallel: 10
@@ -60,7 +60,7 @@ jobs:
             res://tests-2/
           timeout: 2
           publish-report: false
-          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}
+          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.godot-net }}
 
       - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-net }}'
         if: ${{ matrix.godot-net != '' }}
