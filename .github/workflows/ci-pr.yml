@@ -49,6 +49,8 @@ jobs:
 
       - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}'
         if: ${{ matrix.godot-net == '' }}
+        id: test-action
+        continue-on-error: true
         timeout-minutes: 5
         uses: ./
         with:
@@ -62,6 +64,17 @@ jobs:
           publish-report: false
           report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.godot-net }}
 
+      - name: 'Verify used Godot version if failed'
+        if: ${{ steps.test-action.outcome == 'failure'}}
+        shell: bash
+        run: |
+          if [[ "${{ matrix.version }}" == "master" && "${{ matrix.godot-version }}" < "4.3" ]]; then
+            echo "The test should fail for master version on Godot < 4.3, to not report as error" 
+          else
+            echo "Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }} failed."
+            exit 1
+          fi
+        
       - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-net }}'
         if: ${{ matrix.godot-net != '' }}
         env:
