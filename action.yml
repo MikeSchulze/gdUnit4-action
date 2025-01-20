@@ -1,6 +1,6 @@
 name: 'GdUnit4 - Test Runner Action'
 description: 'This GitHub Action automates the execution of GdUnit4 unit tests within the Godot Engine 4.x environment.'
-author: Mike Schulze <mikeschulze.lpz@kabelmail.de>
+author: Mike Schulze <mikeschulze.lpz@gmail.com>
 
 inputs:
   godot-version:
