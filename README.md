@@ -1,206 +1,257 @@
+# GdUnit4 Action
 
-<h1 align="center">gdUnit4-action </h1>
+<div align="center">
 
-[![License](https://img.shields.io/github/license/MikeSchulze/gdunit4-action)](https://github.com/MikeSchulze/gdUnit4-action/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/MikeSchulze/gdunit4-action)](https://github.com/MikeSchulze/gdunit4-action/blob/master/LICENSE)
 [![GitHub release badge](https://badgen.net/github/release/MikeSchulze/gdunit4-action/stable)](https://github.com/MikeSchulze/gdunit4-action/releases/latest)
 [![CI/CD](https://github.com/MikeSchulze/gdunit4-action/actions/workflows/ci-dev.yml/badge.svg)](https://github.com/MikeSchulze/gdunit4-action/actions/workflows/ci-dev.yml)
+[![Discord](https://img.shields.io/discord/885149082119733269?label=discord)](https://img.shields.io/discord/885149082119733269)
 
-This GitHub Action automates the execution of GdUnit4 and GdUnit4Net unit tests within the Godot Engine 4.x environment.<br> It provides flexibility in configuring the Godot version, GdUnit4 version, test paths, and other parameters to suit your testing needs.
+</div>
 
-* [Inputs](#inputs)
+This GitHub Action automates the execution of GdUnit4 (GDScript) and GdUnit4Net (CSharpScript) unit tests within the Godot Engine 4.x environment. It provides flexibility in configuring the Godot version, GdUnit4 version, test paths, and other parameters to suit your testing needs.
+
+## Table of Contents
+
+* [Requirements](#requirements)
+* [Quick Start](#quick-start)
 * [Usage](#usage)
+* [Configuration](#configuration)
 * [Examples](#examples)
+* [Troubleshooting](#troubleshooting)
+* [Performance Optimization](#performance-optimization)
+* [Contributing](#contributing)
 * [License](#license)
-* [Contributing](#contribution-guidelines)
+* [Security](#security)
+* [FAQ](#faq)
 
----
+## Requirements
 
-## Inputs
+### Godot Compatibility
+- Godot 4.x (4.0.0 and above)
+- Both standard and .NET versions supported
+- Tested with stable, RC, and dev builds
 
-| Parameter        | Description                                                                           | Type   | Required | Default   |
-| --------------   | ------------------------------------------------------------------------------------- | ------ | -------- | --------- |
-| godot-version    | The version of Godot in which the tests should be run.                                | string | true     |           |
-| godot-status     | The Godot status (e.g., "stable", "rc1", "dev1").                                     | string | false    | stable    |
-| godot-net        | Set to true to run on Godot .Net version for C# tests.                                | bool   | false    | false     |
-| godot-force-mono | Set to true to enforce running GDScript test with Godot Mono executable               | bool   | false    | false     |
-| version          | The version of GdUnit4 to use.                                                        | string | false    | latest    |
-| project_dir      | The project directory in which the action is to be executed.                          | string | false    | ./        |
-| paths            | Comma-separated or newline-separated list of directories containing tests to execute. | string | true     |           |
-| arguments        | Additional arguments to pass to GdUnit4<br> see <https://mikeschulze.github.io/gdUnit4/advanced_testing/cmd/>. | string | false    |           |
-| timeout          | The test execution timeout in minutes.                                                | int    | false    | 10        |
-| retries          | The number of retries if the tests fail.                                              | int    | false    | 0         |
-| publish-report   | Enable disable to publish the report. To disable to run on forked repositories.       | bool   | false    | true      |
-| upload-report    | Enables/Disables to upload the report file                                            | bool   | false    | true      |
-| report-name      | The name of the test report file.                                                     | string | false    | test-report.xml |
+### For C# Testing
+- .NET SDK 7.0 or 8.0
+- Godot .NET version
 
-### Note on Versioning
+### System Requirements
+- GitHub Actions runner (Ubuntu latest recommended)
+- Git with LFS support for larger projects
 
-A GdUnit4 **version** should be specified as a string, such as `v4.2.1`. To run on the latest release, use `latest`, and for the latest unreleased version, use `master`. To keep the version installed in your project, use `installed`.
+## Quick Start
 
-### Note on forked repositories
-
-For forked repositories, you will receive a `HttpError: Resource not accessible by integration` at the `publish-test-report` step.
-For more details, [read more here](https://github.com/dorny/test-reporter?tab=readme-ov-file#recommended-setup-for-public-repositories)
-You must therefore set `publish-report: false` to disable reporting and specify the `report-name` that will be used to upload the report artifact.
-
-Example:
+Basic GDScript testing:
 ```yaml
-      uses: MikeSchulze/gdUnit4-action@v1.1.1
-        with:
-          paths: |
-            res://my_project/test/
-          timeout: 10
-          publish-report: false
-          report-name: my_project
-```
-The uploaded artifact is created with the name "artifact_<report_name>", in the example it would be called "artifact_my_project".
+name: GdUnit4 Tests
+on: [push, pull_request]
 
----
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: MikeSchulze/gdunit4-action@v1
+        with:
+          godot-version: '4.2.1'
+          paths: 'res://tests'
+```
 
 ## Usage
 
+The action can be configured using various inputs to suit your testing needs. Here's a basic usage pattern:
+
 ```yaml
-
-- uses: MikeSchulze/gdUnit4-action@v1
+- uses: MikeSchulze/gdunit4-action@v1
   with:
-    # The version of Godot in which the tests should be run. (e.g., "4.2.1")
-    godot-version: ''
-
-    # The Godot status (e.g., "stable", "rc1", "dev1")
-    # Default: stable
-    godot-status: ''
-
-    # Set to true to run on Godot .Net version to run C# tests
-    # Default: false
-    godot-net: ''
-
-    # Set to true to force running GDScript tests by using the Godot Mono executable
-    # Default: false
-    godot-force-mono: ''
-
-    # The project directory in which the action is to be executed.
-    # The specified directory must end with a path separator. e.g. ./MyProject/
-    # Default: './'
-    project_dir: ''
-
-    # The version of GdUnit4 to use. (e.g. "v4.2.0", "latest", "master", "installed").
-    # Default: latest
-    version: ''
-
-    # Comma-separated or newline-separated list of directories containing test to execute..
-    paths: ''
-
-    # The test execution timeout in minutes.
-    # Default: 10
-    timeout: ''
-
-    # The number of retries if the tests fail. (This can be used for flaky test)
-    # Default: 0
-    retries: ''
-
-    # Additional arguments to pass to GdUnit4 (see https://mikeschulze.github.io/gdUnit4/advanced_testing/cmd/).
-    arguments: ''
-
-    # Enables/Disables to publish the report. To disable to run on forked repositories.
-    # Default: true
-    publish-report: ''
-
-    # Enables/Disables to upload the report file
-    # Default: true
-    upload-report: ''
-
-    # The name of the test report file.
-    report-name: ''
+    godot-version: '4.2.1'       # Required: Godot version to use
+    paths: 'res://tests'         # Required: Test directory
+    timeout: 10                  # Optional: Test timeout in minutes
+    version: 'latest'            # Optional: GdUnit4 version
 ```
+
+## Configuration
+
+### Essential Parameters
+
+| Parameter        | Required | Default | Description |
+|-----------------|----------|---------|-------------|
+| paths           | Yes      |         | Test directories (comma/newline-separated) |
+
+### Godot Configuration
+
+| Parameter        | Required | Default | Description                                 |
+|-----------------|----------|---------|---------------------------------------------|
+| godot-version   | Yes      |         | Godot version (e.g., "4.2.1")               |
+| godot-status    | No       | stable  | Godot status (stable/rc1/dev1)              |
+| godot-net       | No       | false   | Enable Godot .NET for C# tests              |
+| godot-force-mono| No       | false   | Force using Godot Net to run GDScript tests |
+
+### .NET Configuration
+
+| Parameter       | Required | Default | Description |
+|----------------|----------|---------|-------------|
+| dotnet-version | No       | net8.0  | .NET version (net7.0/net8.0) |
+
+### Test Configuration
+
+| Parameter       | Required | Default | Description                                  |
+|----------------|----------|---------|----------------------------------------------|
+| version        | No       | latest  | The GdUnit4 version to use (GDScript plugin) |
+| timeout        | No       | 10      | Test timeout (minutes)                       |
+| retries        | No       | 0       | Number of retry attempts                     |
+| arguments      | No       |         | Additional GdUnit4 arguments                 |
+
+### Reporting Configuration
+
+| Parameter       | Required | Default | Description |
+|----------------|----------|---------|-------------|
+| publish-report | No       | true    | Enable test report publishing |
+| upload-report  | No       | true    | Enable report artifact upload |
+| report-name    | No       | test-report.xml | Report filename |
 
 ## Examples
 
-This example runs all tests located under `res://myproject/tests` on Godot-4.2.1-stable with the latest GdUnit4 release.
-
+### Basic GDScript Testing
 ```yaml
-- uses: actions/checkout@v4
-- uses: MikeSchulze/gdUnit4-action@v1
-  with:
-    godot-version: '4.2.1'
-    paths: 'res://myproject/tests'
-    report-name: 'myproject-test-result'
-```
-
-In this example, all tests located in 'myproject1/tests' and 'myproject2/tests' are executed using the master branch version of GdUnit4
-
-```yaml
-- uses: actions/checkout@v4
-- uses: MikeSchulze/gdUnit4-action@v1
-  with:
-    godot-version: '4.2.1'
-    version: 'master'
-    paths: |
-      res://myproject1/tests
-      res://myproject2/tests
-    report-name: 'myproject-test-result'
-```
-
-In this example, we run the tests but without a published test report.
-
-```yaml
-- uses: actions/checkout@v4
-- uses: MikeSchulze/gdUnit4-action@v1
+- uses: MikeSchulze/gdunit4-action@v1
   with:
     godot-version: '4.2.1'
     paths: 'res://tests'
-    upload-report: false
 ```
 
-In this example, we have a custom project structure and needs to setup the `project_dir`
+### C# Testing with .NET 8.0
+```yaml
+- uses: MikeSchulze/gdunit4-action@v1
+  with:
+    godot-version: '4.2.1'
+    godot-net: true
+    paths: 'res://tests'
+```
 
+### Matrix Testing
+```yaml
+jobs:
+  test:
+    strategy:
+      matrix:
+        godot-version: ['4.1.3', '4.2.1']
+        dotnet-version: ['net7.0', 'net8.0']
+    steps:
+      - uses: MikeSchulze/gdunit4-action@v1
+        with:
+          godot-version: ${{ matrix.godot-version }}
+          godot-net: true
+          dotnet-version: ${{ matrix.dotnet-version }}
+          paths: 'res://tests'
+```
+
+### Testing with Retries and Custom Arguments
+```yaml
+- uses: MikeSchulze/gdunit4-action@v1
+  with:
+    godot-version: '4.2.1'
+    paths: 'res://tests'
+    retries: 3
+    arguments: '--verbose --fail-fast'
+```
+
+### Custom Project Structure
+For projects with non-standard layout:
 ```bash
-- root/
-  - MyProject/
-  - MyProject/src
-  - MyProject/tests
+root/
+  ├── MyProject/
+  │   ├── src/
+  │   └── tests/
 ```
 
 ```yaml
-- uses: actions/checkout@v4
-- uses: MikeSchulze/gdUnit4-action@v1
+- uses: MikeSchulze/gdunit4-action@v1
   with:
     godot-version: '4.2.1'
     project_dir: './MyProject/'
     paths: 'res://tests'
-    
 ```
 
----
+## Troubleshooting
+
+### Common Issues
+
+1. **Test Discovery Failures**
+    - Ensure test paths are correct and use `res://` prefix
+    - Check file permissions on test directories
+
+2. **C# Test Issues**
+    - Verify correct .NET SDK version
+    - Check Godot .NET compatibility
+    - Ensure proper project structure
+
+3. **Timeout Issues**
+    - Increase timeout value for large test suites
+    - Consider splitting tests across multiple jobs
+
+### Debug Logging
+Enable verbose output by adding `--verbose` to the arguments:
+```yaml
+arguments: '--verbose'
+```
+
+## Performance Optimization
+
+### Caching
+The action automatically caches:
+- Godot binaries
+- .NET packages
+- Project cache
+
+### Best Practices
+1. Use specific versions instead of 'latest'
+2. Optimize test discovery paths
+3. Implement parallel test execution where possible
+4. Use appropriate timeout values
+
+## Security
+
+### Fork Considerations
+When running tests from forked repositories:
+1. Set `publish-report: false` to avoid permission issues
+2. Use custom `report-name` for artifact identification
+3. Be cautious with sensitive test data
+
+## FAQ
+
+### Q: Which Godot versions are supported?
+A: All Godot 4.x versions are supported, including stable, RC, and dev builds.
+
+### Q: Can I test both GDScript and C# in the same workflow?
+A: Yes, use separate jobs or matrix testing with different configurations.
+
+### Q: How do I handle flaky tests?
+A: Use the `retries` parameter to automatically retry failed tests.
+
+### Related Projects
+
+- [GdUnit4](https://github.com/MikeSchulze/gdUnit4)
+- [Godot Engine](https://godotengine.org)
+
+## Contributing
+
+We welcome contributions! Please see our [contribution guidelines](CONTRIBUTING.md) for details.
+
+### You're Welcome To
+
+* [Give Feedback](https://github.com/MikeSchulze/gdunit4-action/discussions)
+* [Suggest Improvements](https://github.com/MikeSchulze/gdunit4-action/issues/new?assignees=MikeSchulze&labels=enhancement&template=feature_request.md&title=)
+* [Report Bugs](https://github.com/MikeSchulze/gdunit4-action/issues/new?assignees=MikeSchulze&labels=bug&projects=projects%2F5&template=bug_report.yml&title=GD-XXX%3A+Describe+the+issue+briefly)
+* Join our [Discord Server](https://discord.gg/rdq36JwuaJ)
 
 ## License
 
-The scripts and documentation in this project are released under the [MIT License](./LICENSE)
-
----
-
-### You Are Welcome To
-
-* [Give Feedback](https://github.com/MikeSchulze/gdUnit4-action/discussions) on the gdUnit GitHub Discussions page.
-* [Suggest Improvements](https://github.com/MikeSchulze/gdUnit4-action/issues/new?assignees=MikeSchulze&labels=enhancement&template=feature_request.md&title=) by creating a new feature request issue on the gdUnit GitHub Issues page.
-* [Report Bugs](https://github.com/MikeSchulze/gdUnit4-action/issues/new?assignees=MikeSchulze&labels=bug&projects=projects%2F5&template=bug_report.yml&title=GD-XXX%3A+Describe+the+issue+briefly)  by creating a new bug report issue on the gdUnit GitHub Issues page.
-
----
-
-### Contribution Guidelines
-
-**Thank you for your interest in contributing to GdUnit4!**<br>
-To ensure a smooth and collaborative contribution process, please review our [contribution guidelines](https://github.com/MikeSchulze/gdUnit4-action/blob/master/CONTRIBUTING.md) before getting started. These guidelines outline the standards and expectations we uphold in this project.
-
-Code of Conduct: As a contributor, it is important to respect and follow this code to maintain a positive and inclusive community.
-
-Using GitHub Issues: We utilize GitHub issues for tracking feature requests and bug reports. If you have a general question or wish to engage in discussions, we recommend joining the [GdUnit Discord Server](https://discord.gg/rdq36JwuaJ) for specific inquiries.
-
-We value your input and appreciate your contributions to make gdunit4-action even better!
-
----
+This project is released under the [MIT License](./LICENSE).
 
 ## Contributors
 
-<a href="https://github.com/MishaKav/jest-coverage-comment/graphs/contributors">
+<a href="https://github.com/MikeSchulze/gdUnit4-action/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=MikeSchulze/gdUnit4-action" alt="Contributors" />
 </a>

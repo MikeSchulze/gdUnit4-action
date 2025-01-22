@@ -22,7 +22,9 @@ body:
       description: Which gdUnit4-action version are you using?
       options:
         - gdUnit4-action@master (Pre Release/Master branch)
-        - gdUnit4-action@v1.1.1 (Latest Release)
+        - gdUnit4-action@v1.1.3 (Latest Release)
+        - gdUnit4-action@v1.1.2
+        - gdUnit4-action@v1.1.1
         - gdUnit4-action@v1.0.3
         - gdUnit4-action@v1.0.2
         - gdUnit4-action@v1.0.1
