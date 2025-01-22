@@ -105,6 +105,8 @@ runs:
         /home/runner/godot-linux/godot --version
 
     - name: 'Install gdUnit4 plugin - ${{ inputs.version }}'
+      # We only install the plugin if required, for c# test is not need to install the plugin
+      if: ${{ !cancelled() && env.RUN_GDSCRIPT_TESTS == 'true' }}
       shell: bash
       run: |
         echo -e "\e[33m Change to project directory: ${{ inputs.project_dir }} \e[0m"
