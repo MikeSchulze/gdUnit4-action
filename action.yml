@@ -22,6 +22,10 @@ inputs:
     description: 'The version of GdUnit4 to use. (e.g. "v4.2.0", "latest", "master").'
     required: false
     default: latest
+  dotnet-version:
+    description: 'The used .NET version to run the test (e.g. "net7.0", "net8.0")'
+    required: false
+    default: net8.0
   paths:
     description: 'Comma-separated or newline-separated list of directories containing test to execute.'
     required: true
@@ -70,7 +74,7 @@ runs:
       shell: bash
       run: |
         if ${{inputs.godot-net == 'true' || inputs.godot-force-mono == 'true'}}; then
-            echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status }}_NET" >> "$GITHUB_ENV"
+            echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status }}-${{ inputs.dotnet-version }}" >> "$GITHUB_ENV"
         else
             echo "CACHE_NAME=${{ runner.OS }}-Godot_v${{ inputs.godot-version }}-${{ inputs.godot-status }}" >> "$GITHUB_ENV"
         fi
@@ -143,13 +147,26 @@ runs:
         ls --color=auto -lsA ./addons
         echo -e "\e[34m -----------------\e[0m"
 
+    - name: 'Set .NET SDK version'
+      if: ${{ !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
+      shell: bash
+      run: |
+        sdk_version=$(echo "${{ inputs.dotnet-version }}" | sed 's/^net\([0-9]\.[0-9]\)$/\1.x/')
+        echo "SDK_VERSION=$sdk_version" >> "$GITHUB_ENV"
+        echo "Using .NET version: '$sdk_version'"
+        
+    - name: 'Setup .NET SDK'
+      if: ${{ !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '${{ env.SDK_VERSION }}'
+
     - name: 'Restore .Net Project'
       if: ${{ !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
       shell: bash
       run: |
         cd "${{ inputs.project_dir }}"
-         
-        dotnet add package Microsoft.NET.Test.Sdk --version 17.9.0
+        
         # for gdunit version less than 4.2.2 we need to load api version 4.2.1.1
         gdUnitVersion=$(echo "${{ inputs.version }}" | sed 's/^v//; s/\.//g')
         if [[ ${gdUnitVersion} < 422 ]]; then
@@ -157,13 +174,9 @@ runs:
           echo "gdUnit4 version ${gdUnitVersion} less 4.2.2, update project to gdUnit4.api v4.2.1"
           dotnet add package gdUnit4.api --version 4.2.1
           dotnet add package gdUnit4.test.adapter --version 1.0.0
-        else
-          dotnet add package gdUnit4.api
-          dotnet add package gdUnit4.test.adapter
         fi
         
         dotnet --version
-        dotnet restore
         dotnet build
         dotnet list package
 

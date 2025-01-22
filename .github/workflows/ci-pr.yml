@@ -18,14 +18,14 @@ concurrency:
 jobs:
 
   unit-tests:
-    runs-on: ${{ matrix.godot-net == 'net7.0' && 'ubuntu-22.04' || 'ubuntu-24.04' }}
+    runs-on: ${{ matrix.dotnet-version == 'net7.0' && 'ubuntu-22.04' || 'ubuntu-24.04' }}
     strategy:
       fail-fast: false
       max-parallel: 10
       matrix:
         godot-version: ['4.2', '4.2.1', '4.2.2', '4.3']
         godot-status: ['stable']
-        godot-net: ['', 'net7.0', 'net8.0']
+        dotnet-version: ['', 'net7.0', 'net8.0']
         version: ['master', 'latest', 'v4.2.0']
 
     permissions:
@@ -34,7 +34,7 @@ jobs:
       checks: write
       pull-requests: write
       statuses: write
-    name: 'GdUnit4 ${{ matrix.version }} on Godot_${{ matrix.godot-version }} ${{ matrix.godot-net }}'
+    name: 'GdUnit4 ${{ matrix.version }} on Godot_${{ matrix.godot-version }} ${{ matrix.dotnet-version }}'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -48,7 +48,7 @@ jobs:
           mv -f .github/workflows/resources/* .
 
       - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}'
-        if: ${{ matrix.godot-net == '' }}
+        if: ${{ matrix.dotnet-version == '' }}
         id: test-action
         continue-on-error: true
         timeout-minutes: 5
@@ -62,7 +62,7 @@ jobs:
             res://tests-2/
           timeout: 2
           publish-report: false
-          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.godot-net }}
+          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.dotnet-version }}
 
       - name: 'Verify used Godot version if failed'
         if: ${{ steps.test-action.outcome == 'failure'}}
@@ -75,23 +75,24 @@ jobs:
             exit 1
           fi
         
-      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.godot-net }}'
-        if: ${{ matrix.godot-net != '' }}
+      - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.dotnet-version }}'
+        if: ${{ matrix.dotnet-version != '' }}
         env:
-          DOTNET_VERSION: ${{ matrix.godot-net }}
+          DOTNET_VERSION: ${{ matrix.dotnet-version }}
         timeout-minutes: 5
         uses: ./
         with:
           godot-version: ${{ matrix.godot-version }}
           godot-status: ${{ matrix.godot-status }}
           godot-net: true
+          dotnet-version: ${{ matrix.dotnet-version }}
           version: ${{ matrix.version }}
           paths: 'res://tests/mono'
           timeout: 2
           retries: 3 # We have set the number of repetitions to 3 because Godot .Net randomly crashes during C# tests
 
           publish-report: false
-          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.godot-net }}
+          report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.dotnet-version }}
 
   unit-tests-custom-working-directory:
     runs-on: ubuntu-24.04
@@ -175,6 +176,7 @@ jobs:
         with:
           godot-version: 4.2.2
           godot-force-mono : 'true'
+          dotnet-version: 'net8.0'
           paths: |
             res://tests/
           timeout: 2
