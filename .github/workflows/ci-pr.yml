@@ -74,7 +74,7 @@ jobs:
             echo "Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }} failed."
             exit 1
           fi
-        
+
       - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.dotnet-version }}'
         if: ${{ matrix.dotnet-version != '' }}
         env:
@@ -96,8 +96,6 @@ jobs:
 
   unit-tests-custom-working-directory:
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
     permissions:
       actions: read
       contents: read
@@ -111,12 +109,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
-  
+
       - name: 'Install custom test project'
         shell: bash
         run: |
           mv -f .github/workflows/custom_workpath/ ./custom_workpath/
-  
+
       - name: 'Test gdUnit4-action: on custom project directory'
         timeout-minutes: 5
         uses: ./
@@ -146,8 +144,6 @@ jobs:
   # run gdscript tests with using Godot Net executable
   unit-tests-force-godot-mono:
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
     permissions:
       actions: read
       contents: read
@@ -161,12 +157,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
-  
+
       - name: 'Install custom test project'
         shell: bash
         run: |
           mv -f .github/workflows/resources/* .
-  
+
       - name: 'Test gdUnit4-action: force run Godot net8.0'
         env:
           DOTNET_VERSION: 'net8.0'
@@ -186,8 +182,6 @@ jobs:
   # tests if the action reports test failures the action must fail
   action-fail-test:
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
     permissions:
       actions: read
       contents: read
@@ -232,8 +226,6 @@ jobs:
   # tests do not build the report
   test-disable-report:
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
     permissions:
       actions: read
       contents: read
@@ -260,11 +252,70 @@ jobs:
           publish-report: false
           report-name: action_create-report_false
 
+
+  # tests report warning
+  action-ends-with-warnings:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    name: 'GdUnit4 action to report warning as error'
+
+    steps:
+      - name: 'Checkout gdUnit4-action'
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: 'Install test project'
+        shell: bash
+        run: |
+          mv -f .github/workflows/resources/* .
+
+      - name: 'Run failing failing test'
+        timeout-minutes: 1
+        uses: ./
+        with:
+          godot-version: 4.3
+          paths: |
+            res://tests/tests_with_warnings_test.gd
+          report-name: action_ends-with-warnings
+
+  # tests report warning as error
+  action-ends-with-warnings-as-errors:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    name: 'GdUnit4 action to report warning as error'
+
+    steps:
+      - name: 'Checkout gdUnit4-action'
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: 'Install test project'
+        shell: bash
+        run: |
+          mv -f .github/workflows/resources/* .
+
+      - name: 'Run failing failing test'
+        timeout-minutes: 1
+        uses: ./
+        with:
+          godot-version: 4.3
+          warnings-as-errors: true
+          paths: |
+            res://tests/tests_with_warnings_test.gd
+          report-name: action_create-with-warnings-as-errors
+
+
   finalize:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     name: 'Final Results'
-    needs: [unit-tests, unit-tests-custom-working-directory, unit-tests-force-godot-mono, action-fail-test]
+    needs: [unit-tests, unit-tests-custom-working-directory, unit-tests-force-godot-mono, action-fail-test, action-ends-with-warnings, action-ends-with-warnings-as-errors]
     steps:
       - run: exit 1
         if: >-
