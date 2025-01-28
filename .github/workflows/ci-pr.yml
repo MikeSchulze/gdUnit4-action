@@ -259,7 +259,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    name: 'GdUnit4 action to report warning as error'
+    name: 'GdUnit4 action to report warnings'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -277,8 +277,8 @@ jobs:
         uses: ./
         with:
           godot-version: 4.3
-          paths: |
-            res://tests/tests_with_warnings_test.gd
+          paths: 'res://tests/tests_with_warnings_test.gd'
+          publish-report: false
           report-name: action_ends-with-warnings
 
   # tests report warning as error
@@ -306,8 +306,8 @@ jobs:
         with:
           godot-version: 4.3
           warnings-as-errors: true
-          paths: |
-            res://tests/tests_with_warnings_test.gd
+          paths: 'res://tests/tests_with_warnings_test.gd'
+          publish-report: false
           report-name: action_create-with-warnings-as-errors
 
 
