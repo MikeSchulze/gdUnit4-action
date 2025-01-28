@@ -8,3 +8,6 @@
 *~
 .DS_Store
 .vscode/
+
+# Node.js
+node_modules
