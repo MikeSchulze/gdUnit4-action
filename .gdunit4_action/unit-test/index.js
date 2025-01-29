@@ -1,3 +1,4 @@
+const actionCore = require('@actions/core');  // renamed to avoid conflicts
 const pathLib = require("path");
 const {spawnSync } = require("node:child_process");
 
@@ -117,6 +118,18 @@ async function runTests(exeArgs, core) {
         break;
       default:
         core.setFailed(`Tests failed with unknown error code: ${exitCode}`);
+        } else {
+          console_warning('Tests completed successfully with warnings');
+        }
+        break;
+      case RETURN_ERROR_HEADLESS_NOT_SUPPORTED:
+        setFailed('Headless mode not supported');
+        break;
+      case RETURN_ERROR_GODOT_VERSION_NOT_SUPPORTED:
+        setFailed('Godot version not supported');
+        break;
+      default:
+        setFailed(`Tests failed with unknown error code: ${exitCode}`);
     }
 
     return exitCode;

@@ -203,6 +203,12 @@ runs:
         $GODOT_BIN --path ./ -e --headless --quit-after 2000
         echo -e "\e[94mProject cache successfully restored.\e[0m"
 
+    - name: 'Install node modules'
+      if: ${{ !cancelled() && env.RUN_GDSCRIPT_TESTS == 'true'}}
+      shell: bash
+      run: |
+        npm install
+
     ## GDScript test run
     - name: 'Run GDScript Tests'
       id: test-run
