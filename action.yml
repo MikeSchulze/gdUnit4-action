@@ -40,6 +40,10 @@ inputs:
     description: 'The number of retries if the tests fail.'
     required: false
     default: '0'
+  warnings-as-errors:
+    description: 'Treat test warnings as errors (return code 101 will be treated as error)'
+    required: false
+    default: 'false'
   publish-report:
     description: 'Enable disable to publish the report. To disable to run on forked repositories.'
     required: false
@@ -56,6 +60,12 @@ inputs:
     description: 'The name of the test report file.'
     required: false
     default: 'test-report.xml'
+
+outputs:
+  exit_code:
+    description: 'The exit code from the test run'
+    value: ${{ steps.test-run.outputs.exit_code }}
+
 
 branding:
   icon: 'refresh-cw'
@@ -156,7 +166,7 @@ runs:
         sdk_version=$(echo "${{ inputs.dotnet-version }}" | sed 's/^net\([0-9]\.[0-9]\)$/\1.x/')
         echo "SDK_VERSION=$sdk_version" >> "$GITHUB_ENV"
         echo "Using .NET version: '$sdk_version'"
-        
+
     - name: 'Setup .NET SDK'
       if: ${{ !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
       uses: actions/setup-dotnet@v4
@@ -193,8 +203,15 @@ runs:
         $GODOT_BIN --path ./ -e --headless --quit-after 2000
         echo -e "\e[94mProject cache successfully restored.\e[0m"
 
+    - name: 'Install node modules'
+      if: ${{ !cancelled() && env.RUN_GDSCRIPT_TESTS == 'true'}}
+      shell: bash
+      run: |
+        npm install
+
     ## GDScript test run
     - name: 'Run GDScript Tests'
+      id: test-run
       if: ${{ !cancelled() && env.RUN_GDSCRIPT_TESTS == 'true'}}
       env:
         GODOT_BIN: '/home/runner/godot-linux/godot'
@@ -207,9 +224,11 @@ runs:
             paths: `${{ inputs.paths }}`,
             arguments: `${{ inputs.arguments }}`,
             timeout: ${{ inputs.timeout }},
-            retries: ${{ inputs.retries }}
+            retries: ${{ inputs.retries }},
+            warningsAsErrors : ${{ inputs.warnings-as-errors }}
           };
-          await runTests(args, core);
+          const exitCode =  await runTests(args);
+          core.setOutput('exit_code', exitCode);
 
     - name: 'Publish GDScript Unit Test Reports'
       if: ${{ !cancelled() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'true'}}

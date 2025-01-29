@@ -1,6 +1,13 @@
+const actionCore = require('@actions/core');  // renamed to avoid conflicts
 const pathLib = require("path");
-const { spawn, spawnSync } = require("node:child_process");
+const {spawnSync } = require("node:child_process");
 
+const RETURN_SUCCESS = 0;
+const RETURN_ERROR = 100;
+const RETURN_WARNING = 101;
+const RETURN_ERROR_HEADLESS_NOT_SUPPORTED = 103;
+const RETURN_ERROR_GODOT_VERSION_NOT_SUPPORTED = 104;
+const RETURN_ERROR_ABNORMAL_TERMINATED = 444;
 
 function getProjectPath(project_dir) {
   if (!process.env.GITHUB_WORKSPACE) {
@@ -10,25 +17,34 @@ function getProjectPath(project_dir) {
 }
 
 
-function console_info(...args) {
-  console.log('\x1b[94m', ...args, '\x1b[0m');
+function console_info(message) {
+  console.log('\x1b[94m', message, '\x1b[0m');
 }
 
 
-function console_warning(...args) {
-  console.log('\x1b[33m', 'WARNING:', ...args, '\x1b[0m');
+function console_warning(message) {
+  actionCore.warning(message);
 }
 
 
-function console_error(...args) {
-  console.log('\x1b[31m', 'ERROR:', ...args, '\x1b[0m');
+function setFailed(message) {
+  actionCore.setFailed(message);
 }
 
-async function runTests(exeArgs, core) {
+
+async function runTests(exeArgs) {
   try {
-    const { project_dir, timeout, paths, arguments, retries } = exeArgs;
+    const {
+      project_dir = '',
+      paths = "",
+      arguments = '',
+      timeout = 10,
+      retries = 0,
+      warningsAsErrors = false
+    } = exeArgs;
     // Split by newline or comma, map, trim, and filter empty strings
     const pathsArray = paths.split(/[\r\n,]+/).map((entry) => entry.trim()).filter(Boolean);
+
     // verify support of multi paths/fixed since v4.2.1
     if (pathsArray.length > 1 && process.env.GDUNIT_VERSION === "v4.2.0") {
       console_warning(`Multiple path arguments not supported by GdUnit ${process.env.GDUNIT_VERSION}, please upgrade to GdUnit4 v4.2.1`);
@@ -49,9 +65,15 @@ async function runTests(exeArgs, core) {
     ];
 
     const working_dir = getProjectPath(project_dir);
-    console_info(`Running GdUnit4 ${process.env.GDUNIT_VERSION} tests...`, working_dir, args);
+    console_info(`Running GdUnit4 ${process.env.GDUNIT_VERSION} tests at ${working_dir} with arguments: ${args}`);
+    console_info(`project_dir: ${project_dir}`);
+    console_info(`arguments: ${arguments}`);
+    console_info(`timeout: ${timeout}m`);
+    console_info(`retries: ${retries}`);
+    console_info(`warningsAsErrors: ${warningsAsErrors}`);
 
     let retriesCount = 0;
+    let exitCode = 0;
 
     while (retriesCount <= retries) {
       const child = spawnSync("xvfb-run", args, {
@@ -62,25 +84,56 @@ async function runTests(exeArgs, core) {
         stdio: ["inherit", "inherit", "inherit"],
         env: process.env,
       });
+
+      // Handle spawn errors
+      if (child.error) {
+        actionCore.setFailed(`Run Godot process ends with error: ${child.error}`);
+        return RETURN_ERROR_ABNORMAL_TERMINATED;
+      }
+
       exitCode = child.status;
-      if (exitCode === 0) {
+
+      if (exitCode === RETURN_SUCCESS) {
         break; // Exit loop if successful
       }
       retriesCount++;
       if (retriesCount <= retries) {
-        console_warning(`The tests are failed with exit code: ${exitCode}. Retrying... ${retriesCount} of ${retries}`);
+        console_warning(`Test run failed, retrying... ${retriesCount} of ${retries}`);
       }
     }
 
-    if (exitCode !== 0) {
-      core.setFailed(`The tests was failed after ${retries} retries with exit code: ${exitCode}`);
-    } else if (retriesCount > 0 && retries > 0) {
-      core.warning(`The tests was successfully after ${retriesCount} retries with exit code: ${exitCode}`);
+    switch (exitCode) {
+      case RETURN_SUCCESS:
+        if (retriesCount > 0 && retries > 0) {
+          console_warning(`The tests was successfully after ${retriesCount} retries with exit code: ${exitCode}`);
+        } else {
+          console_info(`The tests was successfully with exit code: ${exitCode}`);
+        }
+        break;
+      case RETURN_ERROR:
+        setFailed(`The tests was failed after ${retries} retries with exit code: ${exitCode}`);
+        break;
+      case RETURN_WARNING:
+        if (warningsAsErrors === true) {
+          setFailed(`Tests completed with warnings (treated as errors)`);
+        } else {
+          console_warning('Tests completed successfully with warnings');
+        }
+        break;
+      case RETURN_ERROR_HEADLESS_NOT_SUPPORTED:
+        setFailed('Headless mode not supported');
+        break;
+      case RETURN_ERROR_GODOT_VERSION_NOT_SUPPORTED:
+        setFailed('Godot version not supported');
+        break;
+      default:
+        setFailed(`Tests failed with unknown error code: ${exitCode}`);
     }
+
     return exitCode;
   } catch (error) {
-    core.setFailed(`Tests failed: ${error.message}`)
-    return 1;
+    setFailed(`Tests failed: ${error.message}`);
+    return RETURN_ERROR;
   }
 }
 

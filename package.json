@@ -1,0 +1,17 @@
+{
+  "name": "gdunit4-action",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MikeSchulze/gdUnit4-action.git"
+  },
+  "private": true,
+  "dependencies": {
+    "@actions/core": "^1.11.1"
+  }
+}
