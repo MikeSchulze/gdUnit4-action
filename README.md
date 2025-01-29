@@ -102,7 +102,7 @@ The action can be configured using various inputs to suit your testing needs. He
 | timeout        | No       | 10      | Test timeout (minutes)                       |
 | retries        | No       | 0       | Number of retry attempts                     |
 | arguments      | No       |         | Additional GdUnit4 arguments                 |
-
+| warnings-as-errors| No       | false   | Treat test warnings as errors |
 ### Reporting Configuration
 
 | Parameter       | Required | Default | Description |
@@ -119,6 +119,15 @@ The action can be configured using various inputs to suit your testing needs. He
   with:
     godot-version: '4.2.1'
     paths: 'res://tests'
+```
+
+### Testing with Warnings threaded as Errors
+```yaml
+- uses: MikeSchulze/gdunit4-action@v1
+  with:
+     godot-version: '4.2.1'
+     paths: 'res://tests'
+     warnings-as-errors: true  # Fail the build on test warnings
 ```
 
 ### C# Testing with .NET 8.0
@@ -229,6 +238,9 @@ A: Yes, use separate jobs or matrix testing with different configurations.
 
 ### Q: How do I handle flaky tests?
 A: Use the `retries` parameter to automatically retry failed tests.
+
+### Q: How do I handle test warnings?
+A: By default, warnings will be reported but won't fail the build. Use `warnings-as-errors: true` to treat warnings as failures.
 
 ### Related Projects
 
