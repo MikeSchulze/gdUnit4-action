@@ -102,7 +102,7 @@ jobs:
       checks: write
       pull-requests: write
       statuses: write
-    name: 'GdUnit4 action on custom working directory'
+    name: 'action on custom working directory'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -150,7 +150,7 @@ jobs:
       checks: write
       pull-requests: write
       statuses: write
-    name: 'GdUnit4 action with force run Godot net8.0'
+    name: 'action dotnet-version set to NET8.0'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -185,10 +185,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-      checks: write
-      pull-requests: write
-      statuses: write
-    name: 'GdUnit4 action fail test'
+    name: 'action failing'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -224,12 +221,12 @@ jobs:
           
 
   # tests do not build the report
-  test-disable-report:
+  action-disable-report:
     runs-on: ubuntu-24.04
     permissions:
       actions: read
       contents: read
-    name: 'GdUnit4 action without report generation'
+    name: 'action without report generation'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -259,7 +256,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    name: 'GdUnit4 action to report warnings'
+    name: 'action report warning'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -272,7 +269,9 @@ jobs:
         run: |
           mv -f .github/workflows/resources/* .
 
-      - name: 'Run failing failing test'
+      - name: 'Run tests with produces warnings'
+        id: test-id
+        continue-on-error: true
         timeout-minutes: 1
         uses: ./
         with:
@@ -281,13 +280,35 @@ jobs:
           publish-report: false
           report-name: action_ends-with-warnings
 
+      - name: 'Verify test results'
+        shell: bash
+        run: |
+          echo 'Verifying test results for warnings (should pass but with warning code)'
+          echo 'Outcome: ${{ steps.test-id.outcome }}'
+          echo 'Exit code: ${{ steps.test-id.outputs.exit_code }}'
+          
+          if [[ '${{ steps.test-id.outcome }}' != 'success' ]]; then
+            echo 'ERROR: Test with warnings should succeed'
+            echo 'Expected outcome: success'
+            echo 'Actual outcome: ${{ steps.test-id.outcome }}'
+            exit 1
+          fi
+          
+          if [[ '${{ steps.test-id.outputs.exit_code }}' != '101' ]]; then
+            echo 'ERROR: Test with warnings should return warning code'
+            echo 'Expected exit code: 101 (WARNING)'
+            echo 'Actual exit code: ${{ steps.test-id.outputs.exit_code }}'
+            exit 1
+          fi
+
+
   # tests report warning as error
   action-ends-with-warnings-as-errors:
     runs-on: ubuntu-24.04
     permissions:
       actions: read
       contents: read
-    name: 'GdUnit4 action to report warning as error'
+    name: 'action report warning as error'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -300,7 +321,9 @@ jobs:
         run: |
           mv -f .github/workflows/resources/* .
 
-      - name: 'Run failing failing test'
+      - name: 'Run tests with produces warnings but treated as error'
+        id: test-id
+        continue-on-error: true
         timeout-minutes: 1
         uses: ./
         with:
@@ -310,12 +333,42 @@ jobs:
           publish-report: false
           report-name: action_create-with-warnings-as-errors
 
+      - name: 'Verify test results'
+        shell: bash
+        run: |
+          echo 'Verifying test results for warning treated as error (should fail)'
+          echo 'Outcome: ${{ steps.test-id.outcome }}'
+          echo 'Exit code: ${{ steps.test-id.outputs.exit_code }}'
+          
+          if [[ '${{ steps.test-id.outcome }}' != 'failure' ]]; then
+            echo 'ERROR: Test with warnings-as-errors should fail'
+            echo 'Expected outcome: failure'
+            echo 'Actual outcome: ${{ steps.test-id.outcome }}'
+            exit 1
+          fi
+          
+          if [[ '${{ steps.test-id.outputs.exit_code }}' != '101' ]]; then
+            echo 'ERROR: Test with warnings-as-errors should return warning code'
+            echo 'Expected exit code: 101 (WARNING)'
+            echo 'Actual exit code: ${{ steps.test-id.outputs.exit_code }}'
+            exit 1
+          fi
 
   finalize:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
     name: 'Final Results'
-    needs: [unit-tests, unit-tests-custom-working-directory, unit-tests-force-godot-mono, action-fail-test, action-ends-with-warnings, action-ends-with-warnings-as-errors]
+    needs:
+      - unit-tests
+      - unit-tests-custom-working-directory
+      - unit-tests-force-godot-mono
+      - action-fail-test
+      - action-disable-report
+      - action-ends-with-warnings
+      - action-ends-with-warnings-as-errors
     steps:
       - run: exit 1
         if: >-

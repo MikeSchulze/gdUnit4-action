@@ -7,6 +7,7 @@ const RETURN_ERROR = 100;
 const RETURN_WARNING = 101;
 const RETURN_ERROR_HEADLESS_NOT_SUPPORTED = 103;
 const RETURN_ERROR_GODOT_VERSION_NOT_SUPPORTED = 104;
+const RETURN_ERROR_ABNORMAL_TERMINATED = 444;
 
 function getProjectPath(project_dir) {
   if (!process.env.GITHUB_WORKSPACE) {
@@ -16,22 +17,22 @@ function getProjectPath(project_dir) {
 }
 
 
-function console_info(...args) {
-  console.log('\x1b[94m', ...args, '\x1b[0m');
+function console_info(message) {
+  console.log('\x1b[94m', message, '\x1b[0m');
 }
 
 
-function console_warning(...args) {
-  console.log('\x1b[33m', 'WARNING:', ...args, '\x1b[0m');
+function console_warning(message) {
+  actionCore.warning(message);
 }
 
 
-function console_error(...args) {
-  console.log('\x1b[31m', 'ERROR:', ...args, '\x1b[0m');
+function setFailed(message) {
+  actionCore.setFailed(message);
 }
 
 
-async function runTests(exeArgs, core) {
+async function runTests(exeArgs) {
   try {
     const {
       project_dir = '',
@@ -66,7 +67,8 @@ async function runTests(exeArgs, core) {
     const working_dir = getProjectPath(project_dir);
     console_info(`Running GdUnit4 ${process.env.GDUNIT_VERSION} tests at ${working_dir} with arguments: ${args}`);
     console_info(`project_dir: ${project_dir}`);
-    console_info(`timeout: ${timeout}`);
+    console_info(`arguments: ${arguments}`);
+    console_info(`timeout: ${timeout}m`);
     console_info(`retries: ${retries}`);
     console_info(`warningsAsErrors: ${warningsAsErrors}`);
 
@@ -86,7 +88,7 @@ async function runTests(exeArgs, core) {
       // Handle spawn errors
       if (child.error) {
         actionCore.setFailed(`Run Godot process ends with error: ${child.error}`);
-        return RETURN_ERROR;
+        return RETURN_ERROR_ABNORMAL_TERMINATED;
       }
 
       exitCode = child.status;
@@ -96,42 +98,41 @@ async function runTests(exeArgs, core) {
       }
       retriesCount++;
       if (retriesCount <= retries) {
-        console_warning(`The tests are failed with exit code: ${exitCode}. Retrying... ${retriesCount} of ${retries}`);
+        console_warning(`Test run failed, retrying... ${retriesCount} of ${retries}`);
       }
     }
 
     switch (exitCode) {
       case RETURN_SUCCESS:
         if (retriesCount > 0 && retries > 0) {
-          actionCore.warning(`The tests was successfully after ${retriesCount} retries with exit code: ${exitCode}`);
+          console_warning(`The tests was successfully after ${retriesCount} retries with exit code: ${exitCode}`);
         } else {
-          actionCore.info(`The tests was successfully with exit code: ${exitCode}`);
+          console_info(`The tests was successfully with exit code: ${exitCode}`);
         }
         break;
       case RETURN_ERROR:
-        actionCore.setFailed(`The tests was failed after ${retries} retries with exit code: ${exitCode}`);
+        setFailed(`The tests was failed after ${retries} retries with exit code: ${exitCode}`);
         break;
       case RETURN_WARNING:
         if (warningsAsErrors === true) {
-          actionCore.setFailed(`Tests completed with warnings (treated as errors)`);
+          setFailed(`Tests completed with warnings (treated as errors)`);
         } else {
-          actionCore.warning('Tests completed successfully with warnings');
-          return RETURN_SUCCESS;
+          console_warning('Tests completed successfully with warnings');
         }
         break;
       case RETURN_ERROR_HEADLESS_NOT_SUPPORTED:
-        actionCore.setFailed('Headless mode not supported');
+        setFailed('Headless mode not supported');
         break;
       case RETURN_ERROR_GODOT_VERSION_NOT_SUPPORTED:
-        actionCore.setFailed('Godot version not supported');
+        setFailed('Godot version not supported');
         break;
       default:
-        actionCore.setFailed(`Tests failed with unknown error code: ${exitCode}`);
+        setFailed(`Tests failed with unknown error code: ${exitCode}`);
     }
 
     return exitCode;
   } catch (error) {
-    actionCore.setFailed(`Tests failed: ${error.message}`);
+    setFailed(`Tests failed: ${error.message}`);
     return RETURN_ERROR;
   }
 }
