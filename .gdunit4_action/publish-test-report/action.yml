@@ -19,7 +19,7 @@ runs:
   using: composite
   steps:
     - name: 'Publish Test Results'
-      uses: dorny/test-reporter@v1.9.1
+      uses: dorny/test-reporter@v2.0.0
       with:
         name: ${{ inputs.report-name }}
         path: '${{ inputs.project_dir }}reports/**/results.xml'
