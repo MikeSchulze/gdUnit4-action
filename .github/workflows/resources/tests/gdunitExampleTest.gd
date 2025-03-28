@@ -72,7 +72,7 @@ func test_is_null() -> void:
 	assert_failure(func() -> void: assert_that(Color.RED).is_null()) \
 		.is_failed() \
 		.has_line(72) \
-		.starts_with_message("Expecting: '<null>' but was 'Color(1, 0, 0, 1)'")
+		.starts_with_message("Expecting: '<null>' but was 'Color%s'" % Color.RED)
 
 
 func test_is_not_null() -> void:
@@ -91,7 +91,7 @@ func test_is_equal() -> void:
 	assert_failure(func() -> void: assert_that(Color.RED).is_equal(Color.GREEN)) \
 		.is_failed() \
 		.has_line(91) \
-		.has_message("Expecting:\n 'Color(0, 1, 0, 1)'\n but was\n 'Color(1, 0, 0, 1)'")
+		.has_message("Expecting:\n 'Color%s'\n but was\n 'Color%s'" % [Color.GREEN, Color.RED])
 
 
 func test_is_not_equal() -> void:
@@ -101,7 +101,7 @@ func test_is_not_equal() -> void:
 	assert_failure(func() -> void: assert_that(Color.RED).is_not_equal(Color.RED)) \
 		.is_failed() \
 		.has_line(101) \
-		.has_message("Expecting:\n 'Color(1, 0, 0, 1)'\n not equal to\n 'Color(1, 0, 0, 1)'")
+		.has_message("Expecting:\n 'Color%s'\n not equal to\n 'Color%s'" % [Color.RED, Color.RED])
 
 
 @warning_ignore("unsafe_method_access")
