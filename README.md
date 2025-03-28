@@ -4,7 +4,7 @@
 
 [![License](https://img.shields.io/github/license/MikeSchulze/gdunit4-action)](https://github.com/MikeSchulze/gdunit4-action/blob/master/LICENSE)
 [![GitHub release badge](https://badgen.net/github/release/MikeSchulze/gdunit4-action/stable)](https://github.com/MikeSchulze/gdunit4-action/releases/latest)
-[![CI/CD](https://github.com/MikeSchulze/gdunit4-action/actions/workflows/ci-dev.yml/badge.svg)](https://github.com/MikeSchulze/gdunit4-action/actions/workflows/ci-dev.yml)
+[![CI/CD](https://github.com/MikeSchulze/gdunit4-action/actions/workflows/ci-dev.yml/badge.svg)](https://github.com/MikeSchulze/gdunit4-action/actions/workflows/ci-master.yml)
 [![Discord](https://img.shields.io/discord/885149082119733269?label=discord)](https://img.shields.io/discord/885149082119733269)
 
 </div>
