@@ -1,5 +1,5 @@
 name: ci-master
-run-name: ${{ github.head_ref || github.ref_name }}-ci-dev
+run-name: ci-${{ github.head_ref || github.ref_name }}
 
 on:
   push:
