@@ -1,0 +1,80 @@
+name: update-major-version-tag
+run-name: Update major version tag for release ${{ github.event.release.tag_name }}
+
+on:
+  release:
+    types: [published]
+
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to use as the source (e.g., v1.2.3)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  update-major-tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all tags and branches
+
+      - name: Extract version info
+        id: version-info
+        run: |
+          # Get the release tag (from release event or manual input)
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            RELEASE_TAG="${{ github.event.release.tag_name }}"
+          else
+            RELEASE_TAG="${{ github.event.inputs.release_tag }}"
+          fi
+          echo "Release tag: $RELEASE_TAG"
+          
+          # Extract major version
+          if [[ $RELEASE_TAG =~ ^v([0-9]+)\. ]]; then
+            MAJOR_VERSION="v${BASH_REMATCH[1]}"
+            echo "Major version: $MAJOR_VERSION"
+            echo "major_version=$MAJOR_VERSION" >> $GITHUB_OUTPUT
+            echo "is_valid_tag=true" >> $GITHUB_OUTPUT
+          else
+            echo "Could not extract major version from tag: $RELEASE_TAG"
+            echo "is_valid_tag=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update major version tag
+        if: steps.version-info.outputs.is_valid_tag == 'true'
+        run: |
+          # Configure Git
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          
+          MAJOR_VERSION="${{ steps.version-info.outputs.major_version }}"
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          
+          echo "Updating $MAJOR_VERSION tag to point to $RELEASE_TAG..."
+          
+          # Check if major version tag exists
+          if git rev-parse --verify refs/tags/$MAJOR_VERSION >/dev/null 2>&1; then
+            echo "Deleting existing $MAJOR_VERSION tag..."
+            git tag -d $MAJOR_VERSION
+            git push --delete origin $MAJOR_VERSION
+          fi
+          
+          # Create new tag pointing to the same commit as the release
+          echo "Creating new $MAJOR_VERSION tag..."
+          git tag $MAJOR_VERSION $RELEASE_TAG
+          git push origin $MAJOR_VERSION
+          
+          echo "✅ Successfully updated $MAJOR_VERSION tag to point to $RELEASE_TAG"
+
+      - name: Major version tag update failed
+        if: steps.version-info.outputs.is_valid_tag != 'true'
+        run: |
+          echo "❌ Could not update major version tag because the release tag format is invalid."
+          echo "Expected format: v{MAJOR}.{MINOR}.{PATCH} (e.g., v1.2.3)"
+          exit 1

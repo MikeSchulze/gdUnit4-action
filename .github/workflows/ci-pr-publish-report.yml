@@ -46,20 +46,20 @@ jobs:
         uses: dorny/test-reporter@v2.0.0
         with:
           name: report_gdUnit4_${{ matrix.gdunit-version }}-Godot${{ matrix.godot-version }}
-          # using artifact to download is broken since download-artifact@v4 see https://github.com/dorny/test-reporter/issues/363 
+          # using artifact to download is broken since download-artifact@v4 see https://github.com/dorny/test-reporter/issues/363
           # We do the download manually on step `Download artifacts`
           #artifact: artifact_gdUnit4_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}${{ matrix.gdotnet-version }}
           path: './home/runner/work/gdUnit4-action/gdUnit4-action/reports/**/results.xml'
           reporter: java-junit
           fail-on-error: 'false'
           fail-on-empty: 'false'
-      
+
       - name: 'Publish Test Adapter Results'
         if: ${{ matrix.dotnet-version != '' }}
         uses: dorny/test-reporter@v2.0.0
         with:
           name: report_gdUnit4_${{ matrix.gdunit-version }}-Godot${{ matrix.godot-version }}-${{ matrix.dotnet-version }}
-          # using artifact to download is broken since download-artifact@v4 see https://github.com/dorny/test-reporter/issues/363 
+          # using artifact to download is broken since download-artifact@v4 see https://github.com/dorny/test-reporter/issues/363
           # We do the download manually on step `Download artifacts`
           #artifact: artifact_gdUnit4_Godot${{ matrix.godot-version }}-${{ matrix.godot-status }}${{ matrix.gdotnet-version }}
           path: './home/runner/work/gdUnit4-action/gdUnit4-action/reports/*.xml'
