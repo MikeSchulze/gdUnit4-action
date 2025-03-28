@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: MikeSchulze/gdunit4-action@v1
+      - uses: MikeSchulze/gdunit4-action@v1.1.5
         with:
           godot-version: '4.2.1'
           paths: 'res://tests'
@@ -63,7 +63,7 @@ jobs:
 The action can be configured using various inputs to suit your testing needs. Here's a basic usage pattern:
 
 ```yaml
-- uses: MikeSchulze/gdunit4-action@v1
+- uses: MikeSchulze/gdunit4-action@v1.1.5
   with:
     godot-version: '4.2.1'       # Required: Godot version to use
     paths: 'res://tests'         # Required: Test directory
@@ -115,7 +115,7 @@ The action can be configured using various inputs to suit your testing needs. He
 
 ### Basic GDScript Testing
 ```yaml
-- uses: MikeSchulze/gdunit4-action@v1
+- uses: MikeSchulze/gdunit4-action@v1.1.5
   with:
     godot-version: '4.2.1'
     paths: 'res://tests'
@@ -123,7 +123,7 @@ The action can be configured using various inputs to suit your testing needs. He
 
 ### Testing with Warnings threaded as Errors
 ```yaml
-- uses: MikeSchulze/gdunit4-action@v1
+- uses: MikeSchulze/gdunit4-action@v1.1.5
   with:
      godot-version: '4.2.1'
      paths: 'res://tests'
@@ -132,7 +132,7 @@ The action can be configured using various inputs to suit your testing needs. He
 
 ### C# Testing with .NET 8.0
 ```yaml
-- uses: MikeSchulze/gdunit4-action@v1
+- uses: MikeSchulze/gdunit4-action@v1.1.5
   with:
     godot-version: '4.2.1'
     godot-net: true
@@ -148,7 +148,7 @@ jobs:
         godot-version: ['4.1.3', '4.2.1']
         dotnet-version: ['net7.0', 'net8.0']
     steps:
-      - uses: MikeSchulze/gdunit4-action@v1
+      - uses: MikeSchulze/gdunit4-action@v1.1.5
         with:
           godot-version: ${{ matrix.godot-version }}
           godot-net: true
@@ -158,7 +158,7 @@ jobs:
 
 ### Testing with Retries and Custom Arguments
 ```yaml
-- uses: MikeSchulze/gdunit4-action@v1
+- uses: MikeSchulze/gdunit4-action@v1.1.5
   with:
     godot-version: '4.2.1'
     paths: 'res://tests'
@@ -176,7 +176,7 @@ root/
 ```
 
 ```yaml
-- uses: MikeSchulze/gdunit4-action@v1
+- uses: MikeSchulze/gdunit4-action@v1.1.5
   with:
     godot-version: '4.2.1'
     project_dir: './MyProject/'
