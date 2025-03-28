@@ -34,7 +34,7 @@ jobs:
           sparse-checkout: .github
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4.1.9
+        uses: actions/download-artifact@v4
         with:
           name: artifact_gdUnit4_${{ matrix.gdunit-version }}_Godot${{ matrix.godot-version }}${{ matrix.dotnet-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -43,7 +43,7 @@ jobs:
 
       - name: 'Publish Test Results'
         if: ${{ matrix.dotnet-version == '' }}
-        uses: dorny/test-reporter@v2.0.0
+        uses: dorny/test-reporter@v2
         with:
           name: report_gdUnit4_${{ matrix.gdunit-version }}-Godot${{ matrix.godot-version }}
           # using artifact to download is broken since download-artifact@v4 see https://github.com/dorny/test-reporter/issues/363
@@ -53,10 +53,11 @@ jobs:
           reporter: java-junit
           fail-on-error: 'false'
           fail-on-empty: 'false'
+          use-actions-summary: 'false'
 
       - name: 'Publish Test Adapter Results'
         if: ${{ matrix.dotnet-version != '' }}
-        uses: dorny/test-reporter@v2.0.0
+        uses: dorny/test-reporter@v2
         with:
           name: report_gdUnit4_${{ matrix.gdunit-version }}-Godot${{ matrix.godot-version }}-${{ matrix.dotnet-version }}
           # using artifact to download is broken since download-artifact@v4 see https://github.com/dorny/test-reporter/issues/363
@@ -66,3 +67,4 @@ jobs:
           reporter: dotnet-trx
           fail-on-error: 'false'
           fail-on-empty: 'false'
+          use-actions-summary: 'false'
