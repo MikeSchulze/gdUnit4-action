@@ -13,16 +13,17 @@ inputs:
     description: 'The report format to build the report'
     required: false
     default: 'java-junit'
-  
+
 
 runs:
   using: composite
   steps:
     - name: 'Publish Test Results'
-      uses: dorny/test-reporter@v2.0.0
+      uses: dorny/test-reporter@v2
       with:
         name: ${{ inputs.report-name }}
-        path: '${{ inputs.project_dir }}reports/**/results.xml'
+        path: '${{ inputs.project_dir }}reports/**/*.xml'
         reporter: ${{ inputs.reporter }}
         fail-on-error: 'false'
         fail-on-empty: 'false'
+        use-actions-summary: 'false'
