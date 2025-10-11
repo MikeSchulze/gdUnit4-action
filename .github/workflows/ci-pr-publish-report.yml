@@ -29,12 +29,12 @@ jobs:
         gdunit-version: ['master', 'latest', 'v4.2.0']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           sparse-checkout: .github
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: artifact_gdUnit4_${{ matrix.gdunit-version }}_Godot${{ matrix.godot-version }}${{ matrix.dotnet-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
