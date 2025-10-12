@@ -107,6 +107,63 @@ jobs:
           publish-report: false
           report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.dotnet-version }}
 
+
+  invalid_version_compatiblility:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    name: 'Check incompatible for gdunit and godot version'
+
+    steps:
+      - name: 'Checkout gdUnit4-action'
+        uses: actions/checkout@v5
+        with:
+          lfs: true
+
+      - name: 'Test gdUnit4-action: invalid version combination 1'
+        id: version-incompatible1
+        continue-on-error: true
+        timeout-minutes: 1
+        uses: ./
+        with:
+          godot-version: 4.4
+          version: 'v6.0.0'
+          paths: |
+            res://tests/
+          timeout: 1
+          publish-report: false
+
+      - if: ${{ steps.version-incompatible1.outcome != 'failure' }}
+        shell: bash
+        run: |
+          echo "The action must fail, uses incompatible GdUnit and Godot versions."
+          echo "GdUnit4 'v6.0.0' requires minimum Godot version '4.5'."
+          exit 1
+
+      - name: 'Test gdUnit4-action: invalid version combination 2'
+        id: version-incompatible2
+        continue-on-error: true
+        timeout-minutes: 1
+        uses: ./
+        with:
+          godot-version: 4.5
+          version: 'v5.1.1'
+          paths: |
+            res://tests/
+          timeout: 1
+          publish-report: false
+
+      - if: ${{ steps.version-incompatible2.outcome != 'failure' }}
+        shell: bash
+        run: |
+          echo "The action must fail, uses incompatible GdUnit and Godot versions."
+          echo "GdUnit4 'v5.1.1' requires minimum Godot version '4.3' but less version '4.5'."
+          exit 1
+
+
+
+
   unit-tests-custom-working-directory:
     runs-on: ubuntu-24.04
     permissions:
