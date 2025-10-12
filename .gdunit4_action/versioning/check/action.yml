@@ -70,12 +70,10 @@ runs:
           GODOT_MIN=$(grep -A 1 "\"default\":" "${COMPATIBILITY_FILE}" | grep "godot_min" | cut -d'"' -f4)
         fi
         
-        echo ""
-        
         # Check if Godot version meets the minimum requirement        
         if version_ge "$GODOT_VER" "$GODOT_MIN"; then
-          echo -e "\e[92m✓ Version combination is compatible!\e[0m"
-          echo -e "\e[92m  Godot v${GODOT_VER} >= v${GODOT_MIN} ✓\e[0m"
+          echo -e "\e[92m✓ GdUnit4 v${GDUNIT_VER} is compatible with Godot v${GODOT_VER} !\e[0m"
+          echo -e "\e[92m  Minimum required version is v${GODOT_MIN}\e[0m"
           echo -e "\e[34m========================================\e[0m"
           exit 0
         else
