@@ -74,11 +74,6 @@ branding:
 runs:
   using: 'composite'
   steps:
-    # FIXME: workaround until will be merged: https://github.com/actions/runner/pull/1684
-    - shell: bash
-      run: |
-        echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
-        ls -laR ./.gdunit4_action/
 
     # Determine the actual GdUnit4 version that will be used
     - name: 'Determine GdUnit4 Version'
@@ -87,14 +82,6 @@ runs:
       with:
         version: ${{ inputs.version }}
         project_dir: ${{ inputs.project_dir }}
-
-    # Display the determined version
-    - name: 'Display Determined Version'
-      shell: bash
-      run: |
-        echo "========================================"
-        echo "✓ GdUnit4 Version: ${{ env.GDUNIT_VERSION }}"
-        echo "========================================"
 
     - name: 'Set Cache Name'
       shell: bash
@@ -130,20 +117,17 @@ runs:
       run: |
         /home/runner/godot-linux/godot --version
 
-    - name: 'Install gdUnit4 plugin - ${{ inputs.version }}'
+    - name: 'Install gdUnit4 plugin - ${{ env.GDUNIT_VERSION }}'
       # We only install the plugin if required, for c# test is not need to install the plugin
       if: ${{ !cancelled() && env.RUN_GDSCRIPT_TESTS == 'true' }}
       shell: bash
       run: |
         
-        # Use the version determined in the earlier step
-        gdunit_version="${{ env.GDUNIT_VERSION }}"
-        
         echo -e "\e[33m Change to project directory: ${{ inputs.project_dir }} \e[0m"
         cd "${{ inputs.project_dir }}"
 
         if ${{ inputs.version == 'installed' }}; then
-          echo -e "\e[33m Info: Using the installed GdUnit4 plugin version ${gdunit_version}. \e[0m"
+          echo -e "\e[33m Info: Using the installed GdUnit4 plugin version ${{ env.GDUNIT_VERSION }}. \e[0m"
           chmod +x ./addons/gdUnit4/runtest.sh
           exit 0
         fi
@@ -153,7 +137,7 @@ runs:
         if [[ -d "${CLONE_DIR}" ]]; then
           mv "${CLONE_DIR}" ./.install-gdunit4
         else
-          git clone --quiet --depth 1 --branch ${gdunit_version} --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
+          git clone --quiet --depth 1 --branch ${{ env.GDUNIT_VERSION }} --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
         fi
 
         # Remove test if no self test requested
@@ -169,7 +153,7 @@ runs:
         fi
 
         # Install requested gdUnit4 version into current project
-        echo -e "\e[34m Install GdUnit4 \e[92m${gdunit_version} \e[34m plugin in the project \e[0m"
+        echo -e "\e[34m Install GdUnit4 \e[92m${{ env.GDUNIT_VERSION }} \e[34m plugin in the project \e[0m"
         mkdir -p ./addons/gdUnit4/
         cp -R ./.install-gdunit4/addons/gdUnit4 ./addons
         chmod +x ./addons/gdUnit4/runtest.sh
