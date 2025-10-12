@@ -78,13 +78,15 @@ runs:
     - shell: bash
       run: |
         echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
+        ls -lsa ${GITHUB_ACTION_PATH}
+        exit 1
         [ -d ./.gdunit4_action ] || (mkdir -p ./.gdunit4_action/ && cp -r $GITHUB_ACTION_PATH/.gdunit4_action/* ./.gdunit4_action/)
 
     # Determine the actual GdUnit4 version that will be used
     - name: 'Determine GdUnit4 Version'
       shell: bash
       run: |
-        chmod +x ./.gdunit4_action/versioning/determine-version.sh
+        chmod +x ./.gdunit4_action/versioning/determine-version.sh  
         cd "${{ inputs.project_dir }}"
         gdunit_version=$($GITHUB_WORKSPACE/.gdunit4_action/versioning/determine-version.sh "${{ inputs.version }}" ".")
         echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
