@@ -78,18 +78,23 @@ runs:
     - shell: bash
       run: |
         echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
-        ls -lsa ${GITHUB_ACTION_PATH}
-        exit 1
-        [ -d ./.gdunit4_action ] || (mkdir -p ./.gdunit4_action/ && cp -r $GITHUB_ACTION_PATH/.gdunit4_action/* ./.gdunit4_action/)
+        ls -laR ./.gdunit4_action/
 
     # Determine the actual GdUnit4 version that will be used
     - name: 'Determine GdUnit4 Version'
+      id: determine-version
+      uses: ./.gdunit4_action/versioning
+      with:
+        version: ${{ inputs.version }}
+        project_dir: ${{ inputs.project_dir }}
+
+    # Display the determined version
+    - name: 'Display Determined Version'
       shell: bash
       run: |
-        chmod +x ./.gdunit4_action/versioning/determine-version.sh  
-        cd "${{ inputs.project_dir }}"
-        gdunit_version=$($GITHUB_WORKSPACE/.gdunit4_action/versioning/determine-version.sh "${{ inputs.version }}" ".")
-        echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
+        echo "========================================"
+        echo "✓ GdUnit4 Version: ${{ env.GDUNIT_VERSION }}"
+        echo "========================================"
 
     - name: 'Set Cache Name'
       shell: bash

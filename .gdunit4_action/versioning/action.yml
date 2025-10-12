@@ -1,0 +1,134 @@
+name: 'Determine GdUnit4 Version'
+description: 'Determines the actual GdUnit4 version that will be used'
+
+inputs:
+  version:
+    description: 'The version of GdUnit4 to use (e.g., "v4.2.0", "latest", "master", "installed")'
+    required: true
+  project_dir:
+    description: 'The project directory'
+    required: true
+    default: './'
+
+outputs:
+  gdunit-version:
+    description: 'The determined GdUnit4 version'
+    value: ${{ steps.determine.outputs.version }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Determine Version'
+      id: determine
+      shell: bash
+      run: |
+        cd "${{ inputs.project_dir }}"
+        
+        echo "========================================" >&2
+        echo "Determining GdUnit4 Version" >&2
+        echo "========================================" >&2
+        echo "Version Input: ${{ inputs.version }}" >&2
+        echo "Project Directory: ${{ inputs.project_dir }}" >&2
+        echo "" >&2
+        
+        # Function to extract version from plugin.cfg
+        extract_version_from_plugin() {
+            local plugin_file=$1
+            if [[ -f "${plugin_file}" ]]; then
+                version=$(grep -oP '^version="\K[^"]+' "${plugin_file}")
+                if [[ -n "${version}" ]]; then
+                    # Add 'v' prefix if not present
+                    if [[ ! "${version}" =~ ^v ]]; then
+                        version="v${version}"
+                    fi
+                    echo "${version}"
+                    return 0
+                fi
+            fi
+            return 1
+        }
+        
+        # Determine GdUnit4 version based on input
+        if [[ "${{ inputs.version }}" == "installed" ]]; then
+            echo "Checking installed GdUnit4 plugin version..." >&2
+            
+            if [[ -f ./addons/gdUnit4/plugin.cfg ]]; then
+                gdunit_version=$(extract_version_from_plugin "./addons/gdUnit4/plugin.cfg")
+                
+                if [[ -n "${gdunit_version}" ]]; then
+                    echo "✓ Found installed GdUnit4 version: ${gdunit_version}" >&2
+                    echo "version=${gdunit_version}" >> $GITHUB_OUTPUT
+                    exit 0
+                else
+                    echo "✗ Error: Could not extract version from ./addons/gdUnit4/plugin.cfg" >&2
+                    exit 1
+                fi
+            else
+                echo "✗ Error: GdUnit4 plugin not found at ./addons/gdUnit4/plugin.cfg" >&2
+                echo "Make sure the plugin is installed before using version='installed'" >&2
+                exit 1
+            fi
+        
+        elif [[ "${{ inputs.version }}" == "latest" ]]; then
+            echo "Resolving 'latest' GdUnit4 version from GitHub..." >&2
+            
+            gdunit_version=$(git ls-remote --refs --tags https://github.com/MikeSchulze/gdUnit4 v* | sort -t '/' -k 3 -V | tail -n 1 | cut -d '/' -f 3)
+            
+            if [[ -n "${gdunit_version}" ]]; then
+                echo "✓ Resolved latest version: ${gdunit_version}" >&2
+                echo "version=${gdunit_version}" >> $GITHUB_OUTPUT
+                echo "GDUNIT_VERSION=${gdunit_version}" >> $GITHUB_ENV
+                exit 0
+            else
+                echo "✗ Error: Could not resolve latest version from GitHub" >&2
+                exit 1
+            fi
+        
+        else
+            # Custom branch/tag specified
+            echo "Fetching GdUnit4 version from branch/tag '${{ inputs.version }}'..." >&2
+            
+            # First, check if the branch/tag exists
+            echo "Verifying branch/tag exists on GitHub..." >&2
+            
+            # Check if it's a tag
+            if git ls-remote --tags https://github.com/MikeSchulze/gdUnit4 | grep -q "refs/tags/${{ inputs.version }}$"; then
+                echo "✓ Tag '${{ inputs.version }}' found" >&2
+            # Check if it's a branch
+            elif git ls-remote --heads https://github.com/MikeSchulze/gdUnit4 | grep -q "refs/heads/${{ inputs.version }}$"; then
+                echo "✓ Branch '${{ inputs.version }}' found" >&2
+            else
+                echo "✗ Error: Branch/tag '${{ inputs.version }}' does not exist on GitHub" >&2
+                echo "Please verify that the branch/tag exists at: https://github.com/MikeSchulze/gdUnit4" >&2
+                echo "" >&2
+                echo "Available recent tags:" >&2
+                git ls-remote --tags https://github.com/MikeSchulze/gdUnit4 | grep -oP 'refs/tags/\K.*' | grep -v '\^{}' | sort -V | tail -n 10 >&2
+                exit 1
+            fi
+            
+            # Clone the specific branch to get the plugin.cfg
+            echo "Cloning repository..." >&2
+            CLONE_DIR="./.gdunit4-version-${{ inputs.version }}"
+            
+            if git clone --quiet --depth 1 --branch "${{ inputs.version }}" --single-branch https://github.com/MikeSchulze/gdUnit4 "${CLONE_DIR}" 2>/dev/null; then
+                
+                gdunit_version=$(extract_version_from_plugin "${CLONE_DIR}/addons/gdUnit4/plugin.cfg")
+                
+                if [[ -n "${gdunit_version}" ]]; then
+                    echo "✓ Found GdUnit4 version from branch '${{ inputs.version }}': ${gdunit_version}" >&2
+                    echo "Repository cloned to: ${CLONE_DIR}" >&2
+                    echo "version=${gdunit_version}" >> $GITHUB_OUTPUT
+                    echo "GDUNIT_VERSION=${gdunit_version}" >> $GITHUB_ENV
+                    exit 0
+                else
+                    echo "✗ Error: Could not extract version from plugin.cfg in branch '${{ inputs.version }}'" >&2
+                    rm -rf "${CLONE_DIR}"
+                    exit 1
+                fi
+            else
+                echo "✗ Error: Could not clone branch/tag '${{ inputs.version }}' from GitHub" >&2
+                echo "Please verify that the branch/tag exists at: https://github.com/MikeSchulze/gdUnit4" >&2
+                rm -rf "${CLONE_DIR}" 2>/dev/null
+                exit 1
+            fi
+        fi
