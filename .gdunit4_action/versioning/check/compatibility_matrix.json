@@ -1,0 +1,26 @@
+{
+  "reference": "https://github.com/MikeSchulze/gdUnit4#compatibility-overview",
+  "default": {
+    "godot_min": "4.5"
+  },
+  "versions": {
+    "6.0.0": {
+      "godot_min": "4.5"
+    },
+    "5.0.0": {
+      "godot_min": "4.3"
+    },
+    "4.4.0": {
+      "godot_min": "4.2"
+    },
+    "4.3.0": {
+      "godot_min": "4.2"
+    },
+    "4.2.1": {
+      "godot_min": "4.1"
+    },
+    "4.2.0": {
+      "godot_min": "4.0"
+    }
+  }
+}

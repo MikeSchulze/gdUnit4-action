@@ -68,12 +68,8 @@ jobs:
         if: ${{ steps.test-action.outcome == 'failure'}}
         shell: bash
         run: |
-          if [[ "${{ matrix.version }}" == "master" && "${{ matrix.godot-version }}" < "4.5" ]]; then
-            echo "The test should fail for master version on Godot < 4.5, to not report as error" 
-          else
             echo "Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }} failed."
             exit 1
-          fi
 
       - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.dotnet-version }}'
         if: ${{ matrix.dotnet-version != '' }}
