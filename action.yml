@@ -80,6 +80,15 @@ runs:
         echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
         [ -d ./.gdunit4_action ] || (mkdir -p ./.gdunit4_action/ && cp -r $GITHUB_ACTION_PATH/.gdunit4_action/* ./.gdunit4_action/)
 
+    # Determine the actual GdUnit4 version that will be used
+    - name: 'Determine GdUnit4 Version'
+      shell: bash
+      run: |
+        chmod +x ./.gdunit4_action/versioning/determine-version.sh
+        cd "${{ inputs.project_dir }}"
+        gdunit_version=$($GITHUB_WORKSPACE/.gdunit4_action/versioning/determine-version.sh "${{ inputs.version }}" ".")
+        echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
+
     - name: 'Set Cache Name'
       shell: bash
       run: |
@@ -109,7 +118,7 @@ runs:
         godot-status-version: ${{ inputs.godot-status }}
         install-path: '/home/runner/godot-linux'
 
-    - name: 'print restored version - ${{ inputs.version }}'
+    - name: 'print restored version - ${{ inputs.godot-version }}'
       shell: bash
       run: |
         /home/runner/godot-linux/godot --version
@@ -119,41 +128,48 @@ runs:
       if: ${{ !cancelled() && env.RUN_GDSCRIPT_TESTS == 'true' }}
       shell: bash
       run: |
+        
+        # Use the version determined in the earlier step
+        gdunit_version="${{ env.GDUNIT_VERSION }}"
+        
         echo -e "\e[33m Change to project directory: ${{ inputs.project_dir }} \e[0m"
         cd "${{ inputs.project_dir }}"
+
         if ${{ inputs.version == 'installed' }}; then
-          echo -e "\e[33m Info: Using the installed GdUnit4 plugin. \e[0m"
-          gdunit_version="v$(grep -oP '^version="\K[^"]+' ./addons/gdUnit4/plugin.cfg)"
-          echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
+          echo -e "\e[33m Info: Using the installed GdUnit4 plugin version ${gdunit_version}. \e[0m"
           chmod +x ./addons/gdUnit4/runtest.sh
           exit 0
         fi
 
-        if [[ -d ./addons/gdUnit4 ]]; then
-          echo -e "\e[33m Info: Found a previous installation of GdUnit4, deleting it now. \e[0m"
-          rm -rf ./addons/gdUnit4
+        # Prepare install
+        CLONE_DIR="./.gdunit4-version-${{ inputs.version }}"
+        if [[ -d "${CLONE_DIR}" ]]; then
+          mv "${CLONE_DIR}" ./.install-gdunit4
+        else
+          git clone --quiet --depth 1 --branch ${gdunit_version} --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
         fi
-
-        # Download requested gdUnit4 version
-        gdunit_version="${{ inputs.version }}"
-        if ${{ inputs.version == 'latest' }}; then
-          gdunit_version=$(git ls-remote --refs --tags https://github.com/MikeSchulze/gdUnit4 v* | sort -t '/' -k 3 -V | tail -n 1 | cut -d '/' -f 3)
-        fi
-        echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
-        echo "Checkout GdUnit4 from branch '${gdunit_version}'"
-        git clone --quiet --depth 1 --branch ${gdunit_version} --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
 
         # Remove test if no self test requested
         if [[ -d ./.install-gdunit4/addons/gdUnit4/test && ! "${{ env.GDUNIT_SELFTEST }}" ]]; then
           echo "Delete 'addons/gdUnit4/test'"
           rm -rf ./.install-gdunit4/addons/gdUnit4/test
         fi
+        
+        # Delete first possible outdated artifacts
+        if [[ -d ./addons/gdUnit4 ]]; then
+          echo -e "\e[33m Info: Found a previous installation of GdUnit4, deleting it now. \e[0m"
+          rm -rf ./addons/gdUnit4
+        fi
 
-        # Install requested gdUnit4 version
+        # Install requested gdUnit4 version into current project
         echo -e "\e[34m Install GdUnit4 \e[92m${gdunit_version} \e[34m plugin in the project \e[0m"
         mkdir -p ./addons/gdUnit4/
         cp -R ./.install-gdunit4/addons/gdUnit4 ./addons
         chmod +x ./addons/gdUnit4/runtest.sh
+        
+        # Cleanup
+        rm -rf ./.install-gdunit4
+        
         echo -e "\e[34m Installed plugins\e[0m"
         echo -e "\e[34m -----------------\e[0m"
         ls --color=auto -lsA ./addons
