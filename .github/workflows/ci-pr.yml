@@ -112,7 +112,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    name: 'Check GdUnit4 vs Godot version compatibility'
+    name: 'Compatibility Checks'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -120,7 +120,7 @@ jobs:
         with:
           lfs: true
 
-      - name: 'Godot version is less compatible'
+      - name: 'Godot version is less compatible with this gdUnit4 version'
         id: version-check1
         continue-on-error: true
         timeout-minutes: 1
@@ -154,7 +154,7 @@ jobs:
             exit 1
           fi
 
-      - name: 'Godot version is not supported'
+      - name: 'Godot version is not supported by this gdUnit4 version'
         id: version-check2
         continue-on-error: true
         timeout-minutes: 1

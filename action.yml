@@ -87,7 +87,7 @@ runs:
         project_dir: ${{ inputs.project_dir }}
 
     # Verify version compatibility
-    - name: 'Verify Version Compatibility'
+    - name: 'Check Version Compatibility'
       uses: ./.gdunit4_action/versioning/check
       id: version_check
       with:
