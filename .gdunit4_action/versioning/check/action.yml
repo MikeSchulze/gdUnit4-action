@@ -1,0 +1,114 @@
+name: 'Verify GdUnit4 Version Compatibility'
+description: 'Verifies that the Godot and GdUnit4 version combination is compatible'
+
+inputs:
+  godot-version:
+    description: 'The Godot version'
+    required: true
+  gdunit-version:
+    description: 'The GdUnit4 version'
+    required: true
+
+outputs:
+  exit_code:
+    description: 'Exit code from compatibility check'
+    value: ${{ steps.check-compatibility.outputs.exit_code }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Check Compatibility'
+      id: check-compatibility
+      shell: bash
+      run: |
+        echo ""
+        echo -e "\e[34mRun Version Compatibility Check\e[0m"
+        
+        GODOT_VERSION="${{ inputs.godot-version }}"
+        GDUNIT_VERSION="${{ inputs.gdunit-version }}"
+        
+        echo -e "\e[33mConfigured Godot Version:\e[0m ${GODOT_VERSION}"
+        echo -e "\e[33mConfigured GdUnit4 Version:\e[0m ${GDUNIT_VERSION}"
+        echo ""
+        
+        # Load compatibility matrix
+        COMPATIBILITY_FILE="./.gdunit4_action/versioning/check/compatibility_matrix.json"
+        
+        if [[ ! -f "${COMPATIBILITY_FILE}" ]]; then
+          echo -e "\e[31m✗ Error: Compatibility matrix file not found\e[0m"
+          echo "exit_code=1" >> "$GITHUB_OUTPUT"
+          exit 1
+        fi
+        
+        # Normalize versions - remove 'v' prefix
+        GODOT_VER=${GODOT_VERSION#v}
+        GDUNIT_VER=${GDUNIT_VERSION#v}
+        
+        # Function to compare version numbers (returns 0 if $1 >= $2)
+        version_ge() {
+          printf '%s\n%s\n' "$2" "$1" | sort -V -C
+          return $?
+        }
+        
+        # Function to compare version numbers (returns 0 if $1 <= $2)
+        version_le() {
+          printf '%s\n%s\n' "$1" "$2" | sort -V -C
+          return $?
+        }
+                
+        # Find matching GdUnit4 version in matrix        
+        ALL_VERSIONS=$(grep -oP '^\s*"\K[0-9]+\.[0-9]+\.[0-9]+(?=":)' "${COMPATIBILITY_FILE}" | sort -V -r)
+        
+        # Find the closest version that is <= GDUNIT_VER
+        for ver in $ALL_VERSIONS; do
+          if version_le "$ver" "$GDUNIT_VER"; then
+            echo -e "\e[92m✓ Using compatibility rules for GdUnit4 v${ver}\e[0m"
+            GODOT_MIN=$(grep -A 1 "\"${ver}\":" "${COMPATIBILITY_FILE}" | grep "godot_min" | cut -d'"' -f4)
+            GODOT_MAX=$(grep -A 2 "\"${ver}\":" "${COMPATIBILITY_FILE}" | grep "godot_max" | cut -d'"' -f4)
+            break
+          fi
+        done
+        
+        # If still no match found, use default
+        if [[ -z "$GODOT_MIN" ]]; then
+          echo -e "\e[33m⚠️  No specific version found, using default compatibility rules\e[0m"
+          GODOT_MIN=$(grep -A 1 "\"default\":" "${COMPATIBILITY_FILE}" | grep "godot_min" | cut -d'"' -f4)
+        fi
+        
+        # Check if Godot version meets the minimum requirement
+        if ! version_ge "$GODOT_VER" "$GODOT_MIN"; then
+         echo -e "\e[31m✗ Incompatible version combination detected!\e[0m"
+         echo -e "\e[31m  GdUnit4 v${GDUNIT_VER} requires at least Godot v${GODOT_MIN}, but you are using Godot v${GODOT_VER}\e[0m"
+         echo ""
+         REFERENCE=$(grep -oP '"reference":\s*"\K[^"]+' "${COMPATIBILITY_FILE}")
+         echo -e "\e[33mPlease check the compatibility matrix at:\e[0m"
+         echo -e "\e[34m${REFERENCE}\e[0m"
+         echo -e "\e[34m========================================\e[0m"
+         echo "exit_code=78" >> "$GITHUB_OUTPUT"
+         exit 78
+        fi
+        
+        # Check if Godot version exceeds maximum (if max is defined)
+        if [[ -n "$GODOT_MAX" ]] && ! version_le "$GODOT_VER" "$GODOT_MAX"; then
+          echo -e "\e[31m✗ Incompatible version combination detected!\e[0m"
+          echo -e "\e[31m  GdUnit4 v${GDUNIT_VER} supports Godot v${GODOT_MIN} to v${GODOT_MAX}, but you are using Godot v${GODOT_VER}\e[0m"
+          echo ""
+          REFERENCE=$(grep -oP '"reference":\s*"\K[^"]+' "${COMPATIBILITY_FILE}")
+          echo -e "\e[33mPlease check the compatibility matrix at:\e[0m"
+          echo -e "\e[34m${REFERENCE}\e[0m"
+          echo -e "\e[34m========================================\e[0m"
+          echo "exit_code=78" >> "$GITHUB_OUTPUT"
+          exit 78
+        fi
+        
+        # All checks passed
+        echo -e "\e[92m✓ Configured GdUnit4 version is compatible!\e[0m"
+        if [[ -n "$GODOT_MAX" ]]; then
+          echo -e "\e[92m  Godot v${GODOT_MIN} <= v${GODOT_VER} <= v${GODOT_MAX} ✓\e[0m"
+          else
+          echo -e "\e[92m  Godot v${GODOT_VER} >= v${GODOT_MIN} ✓\e[0m"
+        fi
+        
+        echo -e "\e[34m========================================\e[0m"
+        echo "exit_code=0" >> "$GITHUB_OUTPUT"
+        exit 0

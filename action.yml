@@ -66,6 +66,9 @@ outputs:
     description: 'The exit code from the test run'
     value: ${{ steps.test-run.outputs.exit_code }}
 
+  version_check_exit_code:
+    description: 'The exit code from the version compatibility check'
+    value: ${{ steps.version_check.outputs.exit_code }}
 
 branding:
   icon: 'refresh-cw'
@@ -74,13 +77,25 @@ branding:
 runs:
   using: 'composite'
   steps:
-    # FIXME: workaround until will be merged: https://github.com/actions/runner/pull/1684
-    - shell: bash
-      run: |
-        echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
-        [ -d ./.gdunit4_action ] || (mkdir -p ./.gdunit4_action/ && cp -r $GITHUB_ACTION_PATH/.gdunit4_action/* ./.gdunit4_action/)
+
+    # Determine the actual GdUnit4 version that will be used
+    - name: 'Determine GdUnit4 Version'
+      id: determine-version
+      uses: ./.gdunit4_action/versioning
+      with:
+        version: ${{ inputs.version }}
+        project_dir: ${{ inputs.project_dir }}
+
+    # Verify version compatibility
+    - name: 'Check Version Compatibility'
+      uses: ./.gdunit4_action/versioning/check
+      id: version_check
+      with:
+        godot-version: ${{ inputs.godot-version }}
+        gdunit-version: ${{ env.GDUNIT_VERSION }}
 
     - name: 'Set Cache Name'
+      if: ${{ success() }}
       shell: bash
       run: |
         if ${{inputs.godot-net == 'true' || inputs.godot-force-mono == 'true'}}; then
@@ -92,6 +107,7 @@ runs:
         echo "RUN_GDSCRIPT_TESTS=${{inputs.godot-net == 'false'}}" >> "$GITHUB_ENV"
 
     - name: 'Build Cache'
+      if: ${{ success() }}
       uses: actions/cache@v4
       id: godot-cache-binary
       with:
@@ -109,58 +125,63 @@ runs:
         godot-status-version: ${{ inputs.godot-status }}
         install-path: '/home/runner/godot-linux'
 
-    - name: 'print restored version - ${{ inputs.version }}'
+    - name: 'print restored version - ${{ inputs.godot-version }}'
+      if: ${{ success() }}
       shell: bash
       run: |
         /home/runner/godot-linux/godot --version
 
-    - name: 'Install gdUnit4 plugin - ${{ inputs.version }}'
+    - name: 'Install gdUnit4 plugin - ${{ env.GDUNIT_VERSION }}'
       # We only install the plugin if required, for c# test is not need to install the plugin
-      if: ${{ !cancelled() && env.RUN_GDSCRIPT_TESTS == 'true' }}
+      if: ${{ !cancelled() && success() && env.RUN_GDSCRIPT_TESTS == 'true' }}
       shell: bash
       run: |
+        
         echo -e "\e[33m Change to project directory: ${{ inputs.project_dir }} \e[0m"
         cd "${{ inputs.project_dir }}"
+
         if ${{ inputs.version == 'installed' }}; then
-          echo -e "\e[33m Info: Using the installed GdUnit4 plugin. \e[0m"
-          gdunit_version="v$(grep -oP '^version="\K[^"]+' ./addons/gdUnit4/plugin.cfg)"
-          echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
+          echo -e "\e[33m Info: Using the installed GdUnit4 plugin version ${{ env.GDUNIT_VERSION }}. \e[0m"
           chmod +x ./addons/gdUnit4/runtest.sh
           exit 0
         fi
 
-        if [[ -d ./addons/gdUnit4 ]]; then
-          echo -e "\e[33m Info: Found a previous installation of GdUnit4, deleting it now. \e[0m"
-          rm -rf ./addons/gdUnit4
+        # Prepare install
+        CLONE_DIR="./.gdunit4-version-${{ inputs.version }}"
+        if [[ -d "${CLONE_DIR}" ]]; then
+          mv "${CLONE_DIR}" ./.install-gdunit4
+        else
+          git clone --quiet --depth 1 --branch ${{ env.GDUNIT_VERSION }} --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
         fi
-
-        # Download requested gdUnit4 version
-        gdunit_version="${{ inputs.version }}"
-        if ${{ inputs.version == 'latest' }}; then
-          gdunit_version=$(git ls-remote --refs --tags https://github.com/MikeSchulze/gdUnit4 v* | sort -t '/' -k 3 -V | tail -n 1 | cut -d '/' -f 3)
-        fi
-        echo "GDUNIT_VERSION=${gdunit_version}" >> "$GITHUB_ENV"
-        echo "Checkout GdUnit4 from branch '${gdunit_version}'"
-        git clone --quiet --depth 1 --branch ${gdunit_version} --single-branch https://github.com/MikeSchulze/gdUnit4 ./.install-gdunit4
 
         # Remove test if no self test requested
         if [[ -d ./.install-gdunit4/addons/gdUnit4/test && ! "${{ env.GDUNIT_SELFTEST }}" ]]; then
           echo "Delete 'addons/gdUnit4/test'"
           rm -rf ./.install-gdunit4/addons/gdUnit4/test
         fi
+        
+        # Delete first possible outdated artifacts
+        if [[ -d ./addons/gdUnit4 ]]; then
+          echo -e "\e[33m Info: Found a previous installation of GdUnit4, deleting it now. \e[0m"
+          rm -rf ./addons/gdUnit4
+        fi
 
-        # Install requested gdUnit4 version
-        echo -e "\e[34m Install GdUnit4 \e[92m${gdunit_version} \e[34m plugin in the project \e[0m"
+        # Install requested gdUnit4 version into current project
+        echo -e "\e[34m Install GdUnit4 \e[92m${{ env.GDUNIT_VERSION }} \e[34m plugin in the project \e[0m"
         mkdir -p ./addons/gdUnit4/
         cp -R ./.install-gdunit4/addons/gdUnit4 ./addons
         chmod +x ./addons/gdUnit4/runtest.sh
+        
+        # Cleanup
+        rm -rf ./.install-gdunit4
+        
         echo -e "\e[34m Installed plugins\e[0m"
         echo -e "\e[34m -----------------\e[0m"
         ls --color=auto -lsA ./addons
         echo -e "\e[34m -----------------\e[0m"
 
     - name: 'Set .NET SDK version'
-      if: ${{ !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
+      if: ${{ !cancelled() && success() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
       shell: bash
       run: |
         sdk_version=$(echo "${{ inputs.dotnet-version }}" | sed 's/^net\([0-9]\.[0-9]\)$/\1.x/')
@@ -168,13 +189,13 @@ runs:
         echo "Using .NET version: '$sdk_version'"
 
     - name: 'Setup .NET SDK'
-      if: ${{ !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
+      if: ${{ !cancelled() && success() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '${{ env.SDK_VERSION }}'
 
     - name: 'Restore .Net Project'
-      if: ${{ !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
+      if: ${{ !cancelled() && success() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
       shell: bash
       run: |
         cd "${{ inputs.project_dir }}"
@@ -193,7 +214,7 @@ runs:
         dotnet list package
 
     - name: 'Restore Godot project cache'
-      if: ${{ !cancelled() }}
+      if: ${{ !cancelled() && success() }}
       env:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       shell: bash
@@ -206,7 +227,7 @@ runs:
     ## GDScript test run
     - name: 'Run GDScript Tests'
       id: test-run
-      if: ${{ !cancelled() && env.RUN_GDSCRIPT_TESTS == 'true'}}
+      if: ${{ !cancelled() && success() && env.RUN_GDSCRIPT_TESTS == 'true'}}
       env:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       uses: actions/github-script@v8
@@ -225,7 +246,7 @@ runs:
           core.setOutput('exit_code', exitCode);
 
     - name: 'Publish GDScript Unit Test Reports'
-      if: ${{ !cancelled() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'true'}}
+      if: ${{ !cancelled() && success() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'true'}}
       uses: ./.gdunit4_action/publish-test-report
       with:
         project_dir: ${{ inputs.project_dir }}
@@ -234,7 +255,7 @@ runs:
 
     ## .Net test run
     - name: 'Run C# Tests'
-      if: ${{ !cancelled() && env.RUN_GDSCRIPT_TESTS == 'false' }}
+      if: ${{ !cancelled() && success() && env.RUN_GDSCRIPT_TESTS == 'false' }}
       env:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       shell: bash
@@ -250,7 +271,7 @@ runs:
         xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings --results-directory ./reports --logger "trx;LogFileName=results.xml" -- GdUnit4.Parameters="--audio-driver Dummy --display-driver x11 --rendering-driver opengl3 --screen 0"
 
     - name: 'Publish .Net Unit Test Reports'
-      if: ${{ !cancelled() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'false' }}
+      if: ${{ !cancelled() && success() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'false' }}
       uses: ./.gdunit4_action/publish-test-report
       with:
         project_dir: ${{ inputs.project_dir }}
@@ -259,7 +280,7 @@ runs:
 
     ## Finally upload the test result artifacts
     - name: 'Upload Unit Test Reports'
-      if: ${{ !cancelled() && inputs.upload-report == 'true' }}
+      if: ${{ !cancelled() && success() && inputs.upload-report == 'true' }}
       uses: ./.gdunit4_action/upload-test-report
       with:
         project_dir: ${{ inputs.project_dir }}

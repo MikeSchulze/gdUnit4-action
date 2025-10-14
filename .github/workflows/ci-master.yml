@@ -24,15 +24,40 @@ concurrency:
 jobs:
 
   unit-tests:
-    runs-on: ${{ matrix.dotnet-version == 'net7.0' && 'ubuntu-22.04' || 'ubuntu-24.04' }}
+    runs-on: 'ubuntu-24.04'
     strategy:
       fail-fast: false
       max-parallel: 10
       matrix:
-        godot-version: ['4.2', '4.2.1', '4.2.2', '4.3', '4.4']
+        version: ['v5.1.1']
+        godot-version: ['4.3', '4.4', '4.4.1']
         godot-status: ['stable']
-        dotnet-version: ['', 'net7.0', 'net8.0']
-        version: ['master', 'latest']
+        dotnet-version: ['', 'net8.0', 'net9.0']
+        include:
+          # V6.0.0
+          - version: 'v6.0.0'
+            godot-version: '4.5'
+            godot-status: 'stable'
+          - version: 'v6.0.0'
+            godot-version: '4.5'
+            godot-status: 'stable'
+            dotnet-version: 'net8.0'
+          - version: 'v6.0.0'
+            godot-version: '4.5'
+            godot-status: 'stable'
+            dotnet-version: 'net9.0'
+          # Latest
+          - version: 'latest'
+            godot-version: '4.5'
+            godot-status: 'stable'
+          - version: 'latest'
+            godot-version: '4.5'
+            godot-status: 'stable'
+            dotnet-version: 'net8.0'
+          - version: 'latest'
+            godot-version: '4.5'
+            godot-status: 'stable'
+            dotnet-version: 'net9.0'
 
     permissions:
       actions: read
@@ -56,7 +81,6 @@ jobs:
       - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}'
         if: ${{ matrix.dotnet-version == '' }}
         id: test-action
-        continue-on-error: true
         timeout-minutes: 5
         uses: ./
         with:
@@ -69,17 +93,6 @@ jobs:
           timeout: 2
           publish-report: false
           report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.dotnet-version }}
-
-      - name: 'Verify used Godot version if failed'
-        if: ${{ steps.test-action.outcome == 'failure'}}
-        shell: bash
-        run: |
-          if [[ "${{ matrix.version }}" == "master" && "${{ matrix.godot-version }}" < "4.3" ]]; then
-            echo "The test should fail for master version on Godot < 4.3, to not report as error" 
-          else
-            echo "Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }} failed."
-            exit 1
-          fi
 
       - name: 'Test gdUnit4-action: GdUnit4 ${{ matrix.version }} - Godot_${{ matrix.godot-version }}-${{ matrix.dotnet-version }}'
         if: ${{ matrix.dotnet-version != '' }}
@@ -99,6 +112,89 @@ jobs:
 
           publish-report: false
           report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.dotnet-version }}
+
+
+  compatibility-check:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    name: 'Compatibility Checks'
+
+    steps:
+      - name: 'Checkout gdUnit4-action'
+        uses: actions/checkout@v5
+        with:
+          lfs: true
+
+      - name: 'Godot version is less compatible with this gdUnit4 version'
+        id: version-check1
+        continue-on-error: true
+        timeout-minutes: 1
+        uses: ./
+        with:
+          godot-version: 4.4
+          version: 'v6.0.0'
+          paths: |
+            res://tests/
+          timeout: 1
+          publish-report: false
+
+      - name: 'Verify incompatibility detected'
+        shell: bash
+        run: |
+          echo "outcome: ${{ steps.version-check1.outcome }}"
+          echo "exit_code: ${{ steps.version-check1.outputs.version_check_exit_code }}"
+          
+          echo "The action must fail, uses incompatible GdUnit and Godot versions."
+          echo "GdUnit4 'v6.0.0' requires minimum Godot version '4.5' but less version '4.5'."
+          
+          if [[ '${{ steps.version-check1.outcome }}' != 'failure' ]]; then
+            echo "Expected: failure"
+            echo "Actual: ${{ steps.version-check1.outcome }}"
+            exit 1
+          fi
+          
+          if [[ '${{ steps.version-check1.outputs.version_check_exit_code }}' != '78' ]]; then
+            echo "ERROR: Expected exit code 78 for version incompatibility"
+            echo "Actual: ${{ steps.version-check1.outputs.version_check_exit_code }}"
+            exit 1
+          fi
+
+      - name: 'Godot version is not supported by this gdUnit4 version'
+        id: version-check2
+        continue-on-error: true
+        timeout-minutes: 1
+        uses: ./
+        with:
+          godot-version: 4.5
+          version: 'v5.1.1'
+          paths: |
+            res://tests/
+          timeout: 1
+          publish-report: false
+
+      - name: 'Verify incompatibility detected'
+        shell: bash
+        run: |
+          echo "outcome: ${{ steps.version-check1.outcome }}"
+          echo "exit_code: ${{ steps.version-check2.outputs.version_check_exit_code }}"
+          
+          echo "The action must fail, uses incompatible GdUnit and Godot versions."
+          echo "GdUnit4 'v5.1.1' requires minimum Godot version '4.3' but less version '4.5'."
+          
+          if [[ '${{ steps.version-check2.outcome }}' != 'failure' ]]; then
+            echo "Expected: failure"
+            echo "Actual: ${{ steps.version-check2.outcome }}"
+            exit 1
+          fi
+          
+          if [[ '${{ steps.version-check2.outputs.version_check_exit_code }}' != '78' ]]; then
+            echo "ERROR: Expected exit code 78 for version incompatibility"
+            echo "Actual: ${{ steps.version-check2.outputs.version_check_exit_code }}"
+            exit 1
+          fi
+
 
   unit-tests-custom-working-directory:
     runs-on: ubuntu-24.04
@@ -125,7 +221,7 @@ jobs:
         timeout-minutes: 5
         uses: ./
         with:
-          godot-version: 4.2.2
+          godot-version: 4.5
           project_dir: './custom_workpath/'
           paths: |
             res://tests/
@@ -137,7 +233,7 @@ jobs:
         timeout-minutes: 5
         uses: ./
         with:
-          godot-version: 4.2.2
+          godot-version: 4.5
           godot-net: true
           version: 'installed'
           project_dir: './custom_workpath/'
@@ -176,7 +272,7 @@ jobs:
         timeout-minutes: 5
         uses: ./
         with:
-          godot-version: 4.2.2
+          godot-version: 4.5
           godot-force-mono : 'true'
           dotnet-version: 'net8.0'
           paths: |
@@ -212,7 +308,7 @@ jobs:
           GDUNIT_FAIL: 'true'
         uses: ./
         with:
-          godot-version: 4.2.2
+          godot-version: 4.5
           paths: |
             res://tests/
           timeout: 2
@@ -249,7 +345,7 @@ jobs:
         timeout-minutes: 3
         uses: ./
         with:
-          godot-version: 4.2.2
+          godot-version: 4.5
           paths: |
             res://tests/
           publish-report: false
@@ -281,7 +377,7 @@ jobs:
         timeout-minutes: 1
         uses: ./
         with:
-          godot-version: 4.3
+          godot-version: 4.5
           paths: 'res://tests/tests_with_warnings_test.gd'
           publish-report: false
           report-name: action_ends-with-warnings
@@ -333,7 +429,7 @@ jobs:
         timeout-minutes: 1
         uses: ./
         with:
-          godot-version: 4.3
+          godot-version: 4.5
           warnings-as-errors: true
           paths: 'res://tests/tests_with_warnings_test.gd'
           publish-report: false
@@ -368,6 +464,7 @@ jobs:
       contents: read
     name: 'Final Results'
     needs:
+      - compatibility-check
       - unit-tests
       - unit-tests-custom-working-directory
       - unit-tests-force-godot-mono
