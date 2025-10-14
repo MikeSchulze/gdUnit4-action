@@ -1,26 +1,33 @@
 {
   "reference": "https://github.com/MikeSchulze/gdUnit4#compatibility-overview",
   "default": {
-    "godot_min": "4.5"
+    "godot_min": "4.5",
+    "godot_max": "5.0"
   },
   "versions": {
     "6.0.0": {
-      "godot_min": "4.5"
+      "godot_min": "4.5",
+      "godot_max": "5.0"
     },
     "5.0.0": {
-      "godot_min": "4.3"
+      "godot_min": "4.3",
+      "godot_max": "4.4.999"
     },
     "4.4.0": {
-      "godot_min": "4.2"
+      "godot_min": "4.2",
+      "godot_max": "4.4.999"
     },
     "4.3.0": {
-      "godot_min": "4.2"
+      "godot_min": "4.2",
+      "godot_max": "4.3.999"
     },
     "4.2.1": {
-      "godot_min": "4.1"
+      "godot_min": "4.1",
+      "godot_max": "4.2.999"
     },
     "4.2.0": {
-      "godot_min": "4.0"
+      "godot_min": "4.0",
+      "godot_max": "4.1.999"
     }
   }
 }

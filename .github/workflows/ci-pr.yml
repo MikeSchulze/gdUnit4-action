@@ -14,7 +14,6 @@ concurrency:
   group: ci-pr-${{ github.event.number }}
   cancel-in-progress: true
 
-
 jobs:
 
   unit-tests:
@@ -108,12 +107,12 @@ jobs:
           report-name: gdUnit4_${{ matrix.version }}_Godot${{ matrix.godot-version }}${{ matrix.dotnet-version }}
 
 
-  invalid_version_compatiblility:
+  compatibility-check:
     runs-on: ubuntu-24.04
     permissions:
       actions: read
       contents: read
-    name: 'Check incompatible for gdunit and godot version'
+    name: 'Check GdUnit4 vs Godot version compatibility'
 
     steps:
       - name: 'Checkout gdUnit4-action'
@@ -121,8 +120,8 @@ jobs:
         with:
           lfs: true
 
-      - name: 'Test gdUnit4-action: invalid version combination 1'
-        id: version-incompatible1
+      - name: 'Godot version is less compatible'
+        id: version-check1
         continue-on-error: true
         timeout-minutes: 1
         uses: ./
@@ -134,15 +133,29 @@ jobs:
           timeout: 1
           publish-report: false
 
-      - if: ${{ steps.version-incompatible1.outcome != 'failure' }}
+      - name: 'Verify incompatibility detected'
         shell: bash
         run: |
+          echo "outcome: ${{ steps.version-check1.outcome }}"
+          echo "exit_code: ${{ steps.version-check1.outputs.version_check_exit_code }}"
+          
           echo "The action must fail, uses incompatible GdUnit and Godot versions."
-          echo "GdUnit4 'v6.0.0' requires minimum Godot version '4.5'."
-          exit 1
+          echo "GdUnit4 'v6.0.0' requires minimum Godot version '4.5' but less version '4.5'."
+          
+          if [[ '${{ steps.version-check1.outcome }}' != 'failure' ]]; then
+            echo "Expected: failure"
+            echo "Actual: ${{ steps.version-check1.outcome }}"
+            exit 1
+          fi
+          
+          if [[ '${{ steps.version-check1.outputs.version_check_exit_code }}' != '78' ]]; then
+            echo "ERROR: Expected exit code 78 for version incompatibility"
+            echo "Actual: ${{ steps.version-check1.outputs.version_check_exit_code }}"
+            exit 1
+          fi
 
-      - name: 'Test gdUnit4-action: invalid version combination 2'
-        id: version-incompatible2
+      - name: 'Godot version is not supported'
+        id: version-check2
         continue-on-error: true
         timeout-minutes: 1
         uses: ./
@@ -154,14 +167,26 @@ jobs:
           timeout: 1
           publish-report: false
 
-      - if: ${{ steps.version-incompatible2.outcome != 'failure' }}
+      - name: 'Verify incompatibility detected'
         shell: bash
         run: |
+          echo "outcome: ${{ steps.version-check1.outcome }}"
+          echo "exit_code: ${{ steps.version-check2.outputs.version_check_exit_code }}"
+          
           echo "The action must fail, uses incompatible GdUnit and Godot versions."
           echo "GdUnit4 'v5.1.1' requires minimum Godot version '4.3' but less version '4.5'."
-          exit 1
-
-
+          
+          if [[ '${{ steps.version-check2.outcome }}' != 'failure' ]]; then
+            echo "Expected: failure"
+            echo "Actual: ${{ steps.version-check2.outcome }}"
+            exit 1
+          fi
+          
+          if [[ '${{ steps.version-check2.outputs.version_check_exit_code }}' != '78' ]]; then
+            echo "ERROR: Expected exit code 78 for version incompatibility"
+            echo "Actual: ${{ steps.version-check2.outputs.version_check_exit_code }}"
+            exit 1
+          fi
 
 
   unit-tests-custom-working-directory:
@@ -432,6 +457,7 @@ jobs:
       contents: read
     name: 'Final Results'
     needs:
+      - compatibility-check
       - unit-tests
       - unit-tests-custom-working-directory
       - unit-tests-force-godot-mono

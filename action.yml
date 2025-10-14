@@ -66,6 +66,9 @@ outputs:
     description: 'The exit code from the test run'
     value: ${{ steps.test-run.outputs.exit_code }}
 
+  version_check_exit_code:
+    description: 'The exit code from the version compatibility check'
+    value: ${{ steps.version_check.outputs.exit_code }}
 
 branding:
   icon: 'refresh-cw'
@@ -86,6 +89,7 @@ runs:
     # Verify version compatibility
     - name: 'Verify Version Compatibility'
       uses: ./.gdunit4_action/versioning/check
+      id: version_check
       with:
         godot-version: ${{ inputs.godot-version }}
         gdunit-version: ${{ env.GDUNIT_VERSION }}
