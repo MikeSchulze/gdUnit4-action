@@ -23,10 +23,35 @@ jobs:
       fail-fast: false
       max-parallel: 10
       matrix:
-        godot-version: ['4.2', '4.2.1', '4.2.2', '4.3', '4.4']
+        version: ['v5.1.1']
+        godot-version: ['4.3', '4.4', '4.4.1']
         godot-status: ['stable']
-        dotnet-version: ['', 'net7.0', 'net8.0']
-        gdunit-version: ['master', 'latest', 'v4.2.0']
+        dotnet-version: ['', 'net8.0', 'net9.0']
+        include:
+          # V6.0.0
+          - version: 'v6.0.0'
+            godot-version: '4.5'
+            godot-status: 'stable'
+          - version: 'v6.0.0'
+            godot-version: '4.5'
+            godot-status: 'stable'
+            dotnet-version: 'net8.0'
+          - version: 'v6.0.0'
+            godot-version: '4.5'
+            godot-status: 'stable'
+            dotnet-version: 'net9.0'
+          # Latest
+          - version: 'latest'
+            godot-version: '4.5'
+            godot-status: 'stable'
+          - version: 'latest'
+            godot-version: '4.5'
+            godot-status: 'stable'
+            dotnet-version: 'net8.0'
+          - version: 'latest'
+            godot-version: '4.5'
+            godot-status: 'stable'
+            dotnet-version: 'net9.0'
 
     steps:
       - uses: actions/checkout@v5
@@ -68,3 +93,4 @@ jobs:
           fail-on-error: 'false'
           fail-on-empty: 'false'
           use-actions-summary: 'false'
+
