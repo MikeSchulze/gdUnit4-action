@@ -23,32 +23,32 @@ jobs:
       fail-fast: false
       max-parallel: 10
       matrix:
-        version: ['v5.1.1']
+        gdunit-version: ['v5.1.1']
         godot-version: ['4.3', '4.4', '4.4.1']
         godot-status: ['stable']
         dotnet-version: ['', 'net8.0', 'net9.0']
         include:
           # V6.0.0
-          - version: 'v6.0.0'
+          - gdunit-version: 'v6.0.0'
             godot-version: '4.5'
             godot-status: 'stable'
           - version: 'v6.0.0'
             godot-version: '4.5'
             godot-status: 'stable'
             dotnet-version: 'net8.0'
-          - version: 'v6.0.0'
+          - gdunit-version: 'v6.0.0'
             godot-version: '4.5'
             godot-status: 'stable'
             dotnet-version: 'net9.0'
           # Latest
-          - version: 'latest'
+          - gdunit-version: 'latest'
             godot-version: '4.5'
             godot-status: 'stable'
-          - version: 'latest'
+          - gdunit-version: 'latest'
             godot-version: '4.5'
             godot-status: 'stable'
             dotnet-version: 'net8.0'
-          - version: 'latest'
+          - gdunit-version: 'latest'
             godot-version: '4.5'
             godot-status: 'stable'
             dotnet-version: 'net9.0'
@@ -93,4 +93,5 @@ jobs:
           fail-on-error: 'false'
           fail-on-empty: 'false'
           use-actions-summary: 'false'
+
 
