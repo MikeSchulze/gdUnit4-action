@@ -77,6 +77,11 @@ branding:
 runs:
   using: 'composite'
   steps:
+    # FIXME: workaround until will be merged: https://github.com/actions/runner/pull/1684
+    - shell: bash
+      run: |
+        echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
+        [ -d ./.gdunit4_action ] || (mkdir -p ./.gdunit4_action/ && cp -r $GITHUB_ACTION_PATH/.gdunit4_action/* ./.gdunit4_action/)      
 
     # Determine the actual GdUnit4 version that will be used
     - name: 'Determine GdUnit4 Version'
