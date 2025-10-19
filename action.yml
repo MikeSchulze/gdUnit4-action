@@ -100,7 +100,6 @@ runs:
         gdunit-version: ${{ env.GDUNIT_VERSION }}
 
     - name: 'Set Cache Name'
-      if: ${{ success() }}
       shell: bash
       run: |
         if ${{inputs.godot-net == 'true' || inputs.godot-force-mono == 'true'}}; then
@@ -112,7 +111,6 @@ runs:
         echo "RUN_GDSCRIPT_TESTS=${{inputs.godot-net == 'false'}}" >> "$GITHUB_ENV"
 
     - name: 'Build Cache'
-      if: ${{ success() }}
       uses: actions/cache@v4
       id: godot-cache-binary
       with:
@@ -131,14 +129,13 @@ runs:
         install-path: '/home/runner/godot-linux'
 
     - name: 'print restored version - ${{ inputs.godot-version }}'
-      if: ${{ success() }}
       shell: bash
       run: |
         /home/runner/godot-linux/godot --version
 
     - name: 'Install gdUnit4 plugin - ${{ env.GDUNIT_VERSION }}'
       # We only install the plugin if required, for c# test is not need to install the plugin
-      if: ${{ !cancelled() && success() && env.RUN_GDSCRIPT_TESTS == 'true' }}
+      if: ${{ steps.version_check.outcome == 'success' && !cancelled() && env.RUN_GDSCRIPT_TESTS == 'true' }}
       shell: bash
       run: |
         
@@ -186,7 +183,7 @@ runs:
         echo -e "\e[34m -----------------\e[0m"
 
     - name: 'Set .NET SDK version'
-      if: ${{ !cancelled() && success() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
+      if: ${{ steps.version_check.outcome == 'success' && !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
       shell: bash
       run: |
         sdk_version=$(echo "${{ inputs.dotnet-version }}" | sed 's/^net\([0-9]\.[0-9]\)$/\1.x/')
@@ -194,13 +191,13 @@ runs:
         echo "Using .NET version: '$sdk_version'"
 
     - name: 'Setup .NET SDK'
-      if: ${{ !cancelled() && success() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
+      if: ${{ steps.version_check.outcome == 'success' && !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '${{ env.SDK_VERSION }}'
 
     - name: 'Restore .Net Project'
-      if: ${{ !cancelled() && success() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
+      if: ${{ steps.version_check.outcome == 'success' && !cancelled() && (inputs.godot-net == 'true' || inputs.godot-force-mono == 'true') }}
       shell: bash
       run: |
         cd "${{ inputs.project_dir }}"
@@ -219,7 +216,7 @@ runs:
         dotnet list package
 
     - name: 'Restore Godot project cache'
-      if: ${{ !cancelled() && success() }}
+      if: ${{ steps.version_check.outcome == 'success' && !cancelled() }}
       env:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       shell: bash
@@ -232,7 +229,7 @@ runs:
     ## GDScript test run
     - name: 'Run GDScript Tests'
       id: test-run
-      if: ${{ !cancelled() && success() && env.RUN_GDSCRIPT_TESTS == 'true'}}
+      if: ${{ steps.version_check.outcome == 'success' && !cancelled() && env.RUN_GDSCRIPT_TESTS == 'true'}}
       env:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       uses: actions/github-script@v8
@@ -251,7 +248,7 @@ runs:
           core.setOutput('exit_code', exitCode);
 
     - name: 'Publish GDScript Unit Test Reports'
-      if: ${{ !cancelled() && success() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'true'}}
+      if: ${{ steps.version_check.outcome == 'success' && !cancelled() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'true'}}
       uses: ./.gdunit4_action/publish-test-report
       with:
         project_dir: ${{ inputs.project_dir }}
@@ -260,7 +257,7 @@ runs:
 
     ## .Net test run
     - name: 'Run C# Tests'
-      if: ${{ !cancelled() && success() && env.RUN_GDSCRIPT_TESTS == 'false' }}
+      if: ${{ steps.version_check.outcome == 'success' && !cancelled() && env.RUN_GDSCRIPT_TESTS == 'false' }}
       env:
         GODOT_BIN: '/home/runner/godot-linux/godot'
       shell: bash
@@ -276,7 +273,7 @@ runs:
         xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings --results-directory ./reports --logger "trx;LogFileName=results.xml" -- GdUnit4.Parameters="--audio-driver Dummy --display-driver x11 --rendering-driver opengl3 --screen 0"
 
     - name: 'Publish .Net Unit Test Reports'
-      if: ${{ !cancelled() && success() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'false' }}
+      if: ${{ steps.version_check.outcome == 'success' && !cancelled() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'false' }}
       uses: ./.gdunit4_action/publish-test-report
       with:
         project_dir: ${{ inputs.project_dir }}
@@ -285,7 +282,7 @@ runs:
 
     ## Finally upload the test result artifacts
     - name: 'Upload Unit Test Reports'
-      if: ${{ !cancelled() && success() && inputs.upload-report == 'true' }}
+      if: ${{ steps.version_check.outcome == 'success' && !cancelled() && inputs.upload-report == 'true' }}
       uses: ./.gdunit4_action/upload-test-report
       with:
         project_dir: ${{ inputs.project_dir }}
