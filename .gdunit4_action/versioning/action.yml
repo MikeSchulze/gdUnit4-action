@@ -58,6 +58,7 @@ runs:
                 if [[ -n "${gdunit_version}" ]]; then
                     echo -e "\e[92m✓ Found installed GdUnit4 version: ${gdunit_version} \e[0m"
                     echo "version=${gdunit_version}" >> $GITHUB_OUTPUT
+                    echo "GDUNIT_VERSION=${gdunit_version}" >> $GITHUB_ENV
                     exit 0
                 else
                     echo -e "\e[31m✗ Error: Could not extract version from ./addons/gdUnit4/plugin.cfg \e[0m"

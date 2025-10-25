@@ -189,6 +189,53 @@ jobs:
           fi
 
 
+  # this tets would run the action against already installed GdUnit4 v5.1.1
+  unit-tests-installed-version:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+      checks: write
+      pull-requests: write
+      statuses: write
+    name: 'action with installed gdUnit4 addon'
+
+    steps:
+      - name: 'Checkout gdUnit4-action'
+        uses: actions/checkout@v5
+        with:
+          lfs: true
+
+      - name: 'Install GdUnit4'
+        shell: bash
+        run: |
+          # Download and install GdUnit4 v5.1.1
+          wget -q https://github.com/MikeSchulze/gdUnit4/archive/refs/tags/v5.1.1.zip
+          mkdir -p addons
+          sudo apt update -y
+          sudo apt install libarchive-tools
+          bsdtar -xf v5.1.1.zip --strip-components=1
+
+      - name: 'Install test project'
+        shell: bash
+        run: |
+          cp -rf .github/workflows/resources/* .
+          
+          ls -lsR addons
+
+      - name: 'Test gdUnit4-action: with installed GdUnit addon'
+        timeout-minutes: 5
+        uses: ./
+        with:
+          godot-version: 4.4.1
+          version: 'installed'
+          paths: |
+            res://tests/
+          timeout: 2
+          publish-report: false
+          report-name: gdUnit4-installed-version
+
+
   unit-tests-custom-working-directory:
     runs-on: ubuntu-24.04
     permissions:
@@ -459,6 +506,7 @@ jobs:
     needs:
       - compatibility-check
       - unit-tests
+      - unit-tests-installed-version
       - unit-tests-custom-working-directory
       - unit-tests-force-godot-mono
       - action-fail-test
