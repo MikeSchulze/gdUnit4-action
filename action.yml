@@ -269,7 +269,7 @@ runs:
         cd "${{ inputs.project_dir }}"
         # test if a .runsettings file exists, if not use the action provided default .runsettings
         if [ -f .runsettings ]; then
-          echo "Found .runsettings file."
+          echo "Found '.runsettings' file."
         else
           echo "No project specific '.runsettings' found, using action default '.runsettings'"
           cp $GITHUB_ACTION_PATH/.gdunit4_action/.runsettings .
