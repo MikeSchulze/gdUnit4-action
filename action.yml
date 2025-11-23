@@ -29,7 +29,7 @@ inputs:
   console-verbosity:
     description: 'Console logger verbosity for C# tests (quiet|minimal|normal|detailed|diagnostic)'
     required: false
-    default: 'normal'
+    default: 'minimal'
   paths:
     description: 'Comma-separated or newline-separated list of directories containing test to execute.'
     required: true

@@ -93,7 +93,7 @@ The action can be configured using various inputs to suit your testing needs. He
 | Parameter          | Required | Default | Description |
 |-------------------|----------|---------|-------------|
 | dotnet-version    | No       | net8.0  | .NET version (net7.0/net8.0) |
-| console-verbosity | No       | normal  | Console logger verbosity for C# tests (quiet/minimal/normal/detailed/diagnostic) |
+| console-verbosity | No       | minimal | Console logger verbosity for C# tests (quiet/minimal/normal/detailed/diagnostic) |
 
 ### Test Configuration
 
@@ -138,7 +138,7 @@ The action can be configured using various inputs to suit your testing needs. He
     godot-version: '4.2.1'
     godot-net: true
     paths: 'res://tests'
-    console-verbosity: 'detailed'  # Optional: increase output detail
+    console-verbosity: 'normal'  # Optional: increase output detail
 ```
 
 ### Matrix Testing
@@ -209,10 +209,10 @@ For GDScript tests, enable verbose output by adding `--verbose` to the arguments
 arguments: '--verbose'
 ```
 
-For C# tests, control console output verbosity with `console-verbosity`:
+For C# tests, control console output verbosity with `console-verbosity` (default: `minimal`):
 ```yaml
 godot-net: true
-console-verbosity: 'detailed'  # Options: quiet, minimal, normal, detailed, diagnostic
+console-verbosity: 'normal'    # Options: quiet, minimal, normal, detailed, diagnostic
 arguments: '--verbose'          # For Godot engine debug output
 ```
 
