@@ -26,6 +26,10 @@ inputs:
     description: 'The used .NET version to run the test (e.g. "net7.0", "net8.0")'
     required: false
     default: net8.0
+  console-verbosity:
+    description: 'Console logger verbosity for C# tests (quiet|minimal|normal|detailed|diagnostic)'
+    required: false
+    default: 'normal'
   paths:
     description: 'Comma-separated or newline-separated list of directories containing test to execute.'
     required: true
@@ -270,7 +274,7 @@ runs:
           echo "No project specific '.runsettings' found, using action default '.runsettings'"
           cp $GITHUB_ACTION_PATH/.gdunit4_action/.runsettings .
         fi
-        xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings --results-directory ./reports --logger "console" --logger "trx;LogFileName=results.xml" -- GdUnit4.Parameters="--audio-driver Dummy --display-driver x11 --rendering-driver opengl3 --screen 0 ${{ inputs.arguments }}"
+        xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings --results-directory ./reports --logger "console;verbosity=${{ inputs.console-verbosity }}" --logger "trx;LogFileName=results.xml" -- GdUnit4.Parameters="--audio-driver Dummy --display-driver x11 --rendering-driver opengl3 --screen 0 ${{ inputs.arguments }}"
 
     - name: 'Publish .Net Unit Test Reports'
       if: ${{ steps.version_check.outcome == 'success' && !cancelled() && inputs.publish-report == 'true' && env.RUN_GDSCRIPT_TESTS == 'false' }}
