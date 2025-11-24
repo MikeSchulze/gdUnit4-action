@@ -62,7 +62,7 @@ jobs:
 
     steps:
       - name: 'Checkout gdUnit4-action'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -116,7 +116,7 @@ jobs:
 
     steps:
       - name: 'Checkout gdUnit4-action'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -202,7 +202,7 @@ jobs:
 
     steps:
       - name: 'Checkout gdUnit4-action'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -248,7 +248,7 @@ jobs:
 
     steps:
       - name: 'Checkout gdUnit4-action'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -296,7 +296,7 @@ jobs:
 
     steps:
       - name: 'Checkout gdUnit4-action'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -331,7 +331,7 @@ jobs:
 
     steps:
       - name: 'Checkout gdUnit4-action'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -372,7 +372,7 @@ jobs:
 
     steps:
       - name: 'Checkout gdUnit4-action'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -402,7 +402,7 @@ jobs:
 
     steps:
       - name: 'Checkout gdUnit4-action'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -454,7 +454,7 @@ jobs:
 
     steps:
       - name: 'Checkout gdUnit4-action'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
