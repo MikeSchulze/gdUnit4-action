@@ -51,6 +51,19 @@ jobs:
             godot-version: '4.5'
             godot-status: 'stable'
             dotnet-version: 'net9.0'
+          # Dev builds
+          # Latest
+          - version: 'latest'
+            godot-version: '4.6'
+            godot-status: 'dev4'
+          - version: 'latest'
+            godot-version: '4.6'
+            godot-status: 'dev4'
+            dotnet-version: 'net8.0'
+          - version: 'latest'
+            godot-version: '4.6'
+            godot-status: 'dev4'
+            dotnet-version: 'net9.0'
 
     permissions:
       actions: read
